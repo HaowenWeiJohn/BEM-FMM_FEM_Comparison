@@ -1,5 +1,6 @@
-function preprocess_mesh(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads)
-%   Imitates commands executed in "Model/model01_main_script".
+function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC] = ...
+            preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads)
+%   Imitates commands executed in "Model/model01_main_script.m".
 %
 %   Please see "read_cond" and "read_tissue" for specifications of ".cond"
 %   and ".tiss" files
@@ -32,14 +33,16 @@ function preprocess_mesh(filename_mesh, filename_cond, filename_tissue, filename
 %%   Modifications:
 %
 %   Execute as function not as script
+%   Returns all computed data
 %   No GUI output
-%   Different timers
 %   Modified verbosity
+%   Different timers
 %   Meshes are already complete
 %   'tissue_index.txt' files not used
 %   Does not create/save variable 'name'
+%   Creates and Saves 'eps0' and 'mu0'
 
-    %% Determine OS
+    %% Add paths
     if ~isunix
         s = pwd;
         addpath(strcat(s, '\Engine'));
@@ -49,6 +52,10 @@ function preprocess_mesh(filename_mesh, filename_cond, filename_tissue, filename
         addpath(strcat(s, '/Engine'));
         addpath(strcat(s, '/io'));
     end
+    
+    %%  Define EM constants
+    eps0        = 8.85418782e-012;  %   Dielectric permittivity of vacuum(~air)
+    mu0         = 1.25663706e-006;  %   Magnetic permeability of vacuum(~air)
 
     %% Load tissue names, conducitivies and mesh
     tissue              = read_tissue(filename_tissue);
@@ -82,7 +89,7 @@ function preprocess_mesh(filename_mesh, filename_cond, filename_tissue, filename
     tneighbor = pad_neighbor_triangles(tneighbor);
 
     %%   Save base data
-    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast');
+    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0');
 
     %%   Add accurate integration for electric field/electric potential on neighbor facets
     %   Indices into neighbor triangles
@@ -107,5 +114,8 @@ function preprocess_mesh(filename_mesh, filename_cond, filename_tissue, filename
     EC  = CO.*EC;
 
     save(filename_outputP, 'tneighbor', 'EC', 'PC', '-v7.3');
+    
+    %% Remove added paths
+    warning off; rmpath(genpath(s)); warning on;
 
 end
