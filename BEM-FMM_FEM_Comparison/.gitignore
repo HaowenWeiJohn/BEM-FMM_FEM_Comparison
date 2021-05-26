@@ -1,2 +1,6 @@
 # Ad-hoc tests
 tests.m
+
+# Output
+CombinedMesh_test.mat
+CombinedMeshP_test.mat

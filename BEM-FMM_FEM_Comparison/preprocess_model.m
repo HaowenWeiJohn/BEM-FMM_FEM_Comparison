@@ -1,24 +1,31 @@
 function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC] = ...
-            preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads)
+            preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m".
 %
 %   Please see "read_cond" and "read_tissue" for specifications of ".cond"
 %   and ".tiss" files
-%   Conductivity must be in Amm!
+%   Conductivity must be in S/mm!
 %
 %   Triangular mesh must be given as ".mat" file containing:
 %       P - Mx3 matrix of mesh vertices in 3D (in mm!)
 %       t - Nx3 matrix. Each row: 3 row-indices of P determining a triangle
 %       normals - Nx3 matrix of unit outer normals of triangles in t
 %       Indicator - Nx1 matrix of tissue indicators per triangle
-%   The Indices must be integers 0, 1, ..., N
-%   s.t. tissue i encloses tissue i+1 and start
+%   The Indicators must be integers 0, 1, ..., N
+%   s.t. tissue i encloses tissue i+1
+%   Mesh must be in mm!
 %
 %   The output filenames must be ".mat" files
 %   One is the combined mesh, the other additional precomputed results
 %
 %   "numThreads" is the number of cores to be used for MATLAB Parallel
 %   Pools
+%
+%   "RnumberE" is number of neighbor triangles for analytical integration
+%   of electric field (is 128 in original script)
+%
+%   "RnumberE" is number of neighbor triangles for analytical integration
+%   of electric potential (is 128 in original script)
 %
 %   Modifications by Paul Lunkenheimer
 %
@@ -41,6 +48,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   'tissue_index.txt' files not used
 %   Does not create/save variable 'name'
 %   Creates and Saves 'eps0' and 'mu0'
+%   Some Variables from Script are now Parameters
 
     %% Add paths
     if ~isunix
@@ -61,6 +69,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     tissue              = read_tissue(filename_tissue);
     cond                = read_cond(filename_cond);
     load(filename_mesh);
+    assert(length(tissue)==length(unique(Indicator)));
     Indicator           = Indicator + 1;
     enclosingTissueIdx  = (0:max(Indicator)-1)';
     P                   = P*1e-3;     % only if the original data were in mm!
@@ -80,7 +89,6 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     %%  Check for and process triangles that have coincident centroids
     [P, t, normals, Center, Area, Indicator, condin, condout, contrast] = ...
         clean_coincident_facets(P, t, normals, Center, Area, Indicator, condin, condout, contrast);
-    N           = size(t, 1);
 
     %%   Find topological neighbors
     DT = triangulation(t, P); 
@@ -93,8 +101,6 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 
     %%   Add accurate integration for electric field/electric potential on neighbor facets
     %   Indices into neighbor triangles
-    RnumberE        = 128;      %   number of neighbor triangles for analytical integration of electric field
-    RnumberP        = 128;      %   number of neighbor triangles for analytical integration of electric potential
     ineighborE      = knnsearch(Center, Center, 'k', RnumberE);   % [1:N, 1:RnumberE]
     ineighborP      = knnsearch(Center, Center, 'k', RnumberP);   % [1:N, 1:RnumberP]
     ineighborE      = ineighborE';          %   do transpose  
