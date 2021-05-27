@@ -1,4 +1,4 @@
-function [Ctr, M, I0, strdipolePplus, strdipolePminus, dlength, strdipolesig, strdipoleCurrent, strdipolemvector, strdipolemcenter, strdipolemstrength] = ...
+function [Ctr, NoDipoles, I0, strdipolePplus, strdipolePminus, dlength, strdipolesig, strdipoleCurrent, strdipolemvector, strdipolemcenter, strdipolemstrength] = ...
                 setup_dipoles(filename_dipoles, dipole_length, dipole_tissue_index, cond, D)
 %   Imitates commands executed in "bem1_setup_dipole.m" and
 %   "bem1_setup_dipoles.m"
@@ -54,9 +54,9 @@ function [Ctr, M, I0, strdipolePplus, strdipolePminus, dlength, strdipolesig, st
     end
 
     %% Load dipole(s) from file
-    [Ctr, dipole_moment, M]    = read_dipoles(filename_dipoles);
+    [Ctr, dipole_moment, NoDipoles]    = read_dipoles(filename_dipoles);
     Ctr = Ctr*1e-03;                                   % only if the original data were in mm!
-    dipole_magnitude        = sqrt(sum(dipole_moment*dipole_moment'));
+    dipole_magnitude        = sqrt(sum(dipole_moment.*dipole_moment, 2));
     dipole_orientation      = dipole_moment./dipole_magnitude;
     dipole_magnitude        = dipole_magnitude*1e-03;  % only if the original data were in Amm!
     I0                      = dipole_magnitude./dipole_length;
@@ -66,18 +66,18 @@ function [Ctr, M, I0, strdipolePplus, strdipolePminus, dlength, strdipolesig, st
     strdipolePminus         = Ctr - dipole_length.*dipole_orientation;
     if (length(dipole_tissue_index)==1)
         strdipolesig            = repmat(cond(dipole_tissue_index), 1, 2);
-    elseif (all(length(dipole_tissue_index)==[M 1]))
-        strdipolesig            = repmat(cond(dipole_tissue_index), M, 2);
+    elseif (all(length(dipole_tissue_index)==[NoDipoles 1]))
+        strdipolesig            = repmat(cond(dipole_tissue_index), NoDipoles, 2);
     else
         error('Variable "dipole_tissue_index" must be scalar or a row-vector containing one tissue index per dipole');
     end
     strdipoleCurrent       = [+I0; -I0];
     
     %%   Magnetic dipole subdivision (optional)
-    strdipolemvector   = zeros(D*M, 3);
-    strdipolemcenter   = zeros(D*M, 3);
-    strdipolemstrength = zeros(D*M, 1);
-    for m = 1:M
+    strdipolemvector   = zeros(D*NoDipoles, 3);
+    strdipolemcenter   = zeros(D*NoDipoles, 3);
+    strdipolemstrength = zeros(D*NoDipoles, 1);
+    for m = 1:NoDipoles
         temp = (1/D)*(strdipolePplus(m, :) - strdipolePminus(m, :));
         for d = 1:D 
             arg = d+D*(m-1);

@@ -45,6 +45,7 @@ for i=1:length(names)
     name = names{i}
     assert(isfield(p, name));
     if (length(name)==6 && all(name=='tissue'))
+       disp('Please compare "by hand":');
        disp(s.tissue);
        disp(p.tissue);
        continue;
@@ -53,4 +54,10 @@ for i=1:length(names)
        disp("Unequal: " + name); 
     end
 end
+
+%% Output for user
+disp(' ');
+disp(' ');
+disp('Please check by hand if tissue names are the same!');
+disp('All tests ran succesfully');
 
