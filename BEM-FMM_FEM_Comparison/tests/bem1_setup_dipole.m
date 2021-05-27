@@ -4,15 +4,12 @@
 
 %% Add paths
 if ~isunix
-    s = pwd;
-    addpath(strcat(s, '\Engine'));
-    addpath(strcat(s, '\tests'));
+    addpath(strcat(pwd, '\Engine'));
+    addpath(strcat(pwd, '\tests'));
 else
-    s = pwd;
-    addpath(strcat(s, '/Engine'));
-    addpath(strcat(s, '/tests'));
+    addpath(strcat(pwd, '/Engine'));
+    addpath(strcat(pwd, '/tests'));
 end
-clear s;
 
 %% Load model
 filename_model = "CombinedMesh_test.mat";

@@ -19,7 +19,7 @@ function [Ctr, NoDipoles, I0, strdipolePplus, strdipolePminus, dlength, strdipol
 %   containing one tissue index per dipole
 %
 %   "D" is number of smaller subdipoles for magnetic dipole
-%   subdivision (is 1 in original script)
+%   subdivision (is 1 or 10 in original script)
 %
 %   Modifications by Paul Lunkenheimer
 %
@@ -46,11 +46,9 @@ function [Ctr, NoDipoles, I0, strdipolePplus, strdipolePminus, dlength, strdipol
 
     %% Add paths
     if ~isunix
-        s = pwd;
-        addpath(strcat(s, '\io'));
+        addpath(strcat(pwd, '\io'));
     else
-        s = pwd;
-        addpath(strcat(s, '/io'));
+        addpath(strcat(pwd, '/io'));
     end
 
     %% Load dipole(s) from file
@@ -88,6 +86,6 @@ function [Ctr, NoDipoles, I0, strdipolePplus, strdipolePminus, dlength, strdipol
     end
     
     %% Remove added paths
-    warning off; rmpath(genpath(s)); warning on;
+    warning off; rmpath(genpath(pwd)); warning on;
 
 end
