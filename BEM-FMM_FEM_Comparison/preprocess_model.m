@@ -22,10 +22,10 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   Pools
 %
 %   "RnumberE" is number of neighbor triangles for analytical integration
-%   of electric field (is 128 in original script)
+%   of electric field (suggestion for now: RunmberE=16)
 %
-%   "RnumberE" is number of neighbor triangles for analytical integration
-%   of electric potential (is 128 in original script)
+%   "RnumberP" is number of neighbor triangles for analytical integration
+%   of electric potential (suggestion for now: RnumberP=16)
 %
 %   Modifications by Paul Lunkenheimer
 %

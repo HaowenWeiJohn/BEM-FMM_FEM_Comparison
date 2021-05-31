@@ -15,8 +15,8 @@ function [Einc, Pinc, c, resvec, conservation_law_error] = ...
 %   to be added (empirically found)
 %   (is 1/2 in original script)
 %
-%   "R" is "radius of the enclosing sphere in m"??????????????????????
-%   (is 0.01 or 0.005 in original script)
+%   "R" is "radius of the enclosing sphere in m"
+%   (suggested for now: R=1)
 %
 %   Variables "strdipolePplus", "strdipolePminus", "strdipolesig",
 %   "strdipoleCurrent", "Ctr" come from function "setup_dipoles.m"
