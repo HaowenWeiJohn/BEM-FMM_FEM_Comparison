@@ -74,7 +74,7 @@ disp([newline 'Combined mesh saved in ' num2str(toc) ' s']);
 
 %%   Add accurate integration for electric field/electric potential on neighbor facets
 %   Indexes into neighbor triangles
-numThreads      = 20;       %   number of cores to be used
+numThreads      = 2;       %   number of cores to be used
 RnumberE        = 32;      %   number of neighbor triangles for analytical integration of electric field
 RnumberP        = 32;      %   number of neighbor triangles for analytical integration of electric potential
 ineighborE      = knnsearch(Center, Center, 'k', RnumberE);   % [1:N, 1:RnumberE]

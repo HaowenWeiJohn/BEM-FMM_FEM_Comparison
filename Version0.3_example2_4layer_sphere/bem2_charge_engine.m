@@ -22,19 +22,19 @@ disp([newline 'Incident field calculated in ' num2str(toc) ' s']);
 b        = 2*(contrast.*sum(normals.*Einc, 2));                         %  Right-hand side of the matrix equation
 
 %%  GMRES iterative solution (native MATLAB GMRES is used)
-h           = waitbar(0.5, 'Please wait - Running MATLAB GMRES'); 
+%h           = waitbar(0.5, 'Please wait - Running MATLAB GMRES'); 
 tic
 %   MATVEC is the user-defined function of c equal to the left-hand side of the matrix equation LHS(c) = b
 MATVEC = @(c) bemf4_surface_field_lhs(c, Center, Area, contrast, normals, weight, EC);     
 [c, flag, rres, its, resvec] = gmres(MATVEC, b, [], relres, iter, [], [], b); 
-close(h);
+%close(h);
 
 %%  Plot convergence history
-figure; 
-semilogy(resvec/resvec(1), '-o'); grid on;
-title('Relative residual of the iterative solution');
-xlabel('Iteration number');
-ylabel('Relative residual');
+%figure; 
+%semilogy(resvec/resvec(1), '-o'); grid on;
+%title('Relative residual of the iterative solution');
+%xlabel('Iteration number');
+%ylabel('Relative residual');
 
 %%  Check charge conservation law (optional)
 conservation_law_error = sum(c.*Area)/sum(abs(c).*Area)
@@ -47,10 +47,10 @@ solution_error = resvec(end)/resvec(1)
 
 %%  Save solution data (surface charge density, principal value of surface field)
 tic
-save('output_charge_solution', 'c', 'resvec', 'conservation_law_error', 'solution_error');
+%save('output_charge_solution', 'c', 'resvec', 'conservation_law_error', 'solution_error');
 
 %%   Find and save surface electric potential
 Padd = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
 %Padd = bemf4_surface_field_potential_subdiv(c, P, t, Area, 'barycentric', 3);
 Ptot = Pinc + Padd;     %   Continuous total electric potential at interfaces
-save('output_efield_solution.mat', 'Ptot');
+%save('output_efield_solution.mat', 'Ptot');

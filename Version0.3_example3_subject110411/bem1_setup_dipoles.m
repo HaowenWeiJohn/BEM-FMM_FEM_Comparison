@@ -67,56 +67,56 @@ Target      = [31 0 56];     %    in mm here
 [pointsline] = targetctr('110411_skin.mat', Target);
 
 %%  Plot and check correct position
-WM          = load('110411_wm.mat');        %   in mm
-WM.P        = 1e-3*WM.P;                    %   now in m
-WM.Center   = meshtricenter(WM.P, WM.t);
+%WM          = load('110411_wm.mat');        %   in mm
+%WM.P        = 1e-3*WM.P;                    %   now in m
+%WM.Center   = meshtricenter(WM.P, WM.t);
 
-indexw1 = find( (WM.P(WM.t(:, 1), 1)-Ctr(1)).^2 + (WM.P(WM.t(:, 1), 2)-Ctr(2)).^2 + (WM.P(WM.t(:, 1), 3)-Ctr(3)).^2 < R^2);
-indexw2 = find( (WM.P(WM.t(:, 2), 1)-Ctr(1)).^2 + (WM.P(WM.t(:, 2), 2)-Ctr(2)).^2 + (WM.P(WM.t(:, 2), 3)-Ctr(3)).^2 < R^2);
-indexw3 = find( (WM.P(WM.t(:, 3), 1)-Ctr(1)).^2 + (WM.P(WM.t(:, 3), 2)-Ctr(2)).^2 + (WM.P(WM.t(:, 3), 3)-Ctr(3)).^2 < R^2);
-indexw  = intersect(intersect(indexw1, indexw2), indexw3); 
+%indexw1 = find( (WM.P(WM.t(:, 1), 1)-Ctr(1)).^2 + (WM.P(WM.t(:, 1), 2)-Ctr(2)).^2 + (WM.P(WM.t(:, 1), 3)-Ctr(3)).^2 < R^2);
+%indexw2 = find( (WM.P(WM.t(:, 2), 1)-Ctr(1)).^2 + (WM.P(WM.t(:, 2), 2)-Ctr(2)).^2 + (WM.P(WM.t(:, 2), 3)-Ctr(3)).^2 < R^2);
+%indexw3 = find( (WM.P(WM.t(:, 3), 1)-Ctr(1)).^2 + (WM.P(WM.t(:, 3), 2)-Ctr(2)).^2 + (WM.P(WM.t(:, 3), 3)-Ctr(3)).^2 < R^2);
+%indexw  = intersect(intersect(indexw1, indexw2), indexw3); 
 
 %% Plot dipole(s) between WM and GM
-figure('color', 'w');
-str.EdgeColor = 'k'; str.FaceColor = [0 1 1]; str.FaceAlpha = 1.0; 
-bemf2_graphics_base(WM.P, WM.t(indexw, :), str);
-str.EdgeColor = 'k'; str.FaceColor = [0.5 0.5 0.5]; str.FaceAlpha = 1.0; 
-bemf2_graphics_base(GM.P, GM.t(indexg, :), str);
-bemf1_graphics_dipole(strdipolePplus, strdipolePminus, strdipoleCurrent, 0);
+%figure('color', 'w');
+%str.EdgeColor = 'k'; str.FaceColor = [0 1 1]; str.FaceAlpha = 1.0; 
+%bemf2_graphics_base(WM.P, WM.t(indexw, :), str);
+%str.EdgeColor = 'k'; str.FaceColor = [0.5 0.5 0.5]; str.FaceAlpha = 1.0; 
+%bemf2_graphics_base(GM.P, GM.t(indexg, :), str);
+%bemf1_graphics_dipole(strdipolePplus, strdipolePminus, strdipoleCurrent, 0);
 
-S = load('sphere');
-S.P = 1000*R*S.P;
-S.P = S.P + repmat(Ctr, size(S.P, 1), 1);
-str.EdgeColor = 'none'; str.FaceColor = [0 1 1]; str.FaceAlpha = 0.05; 
-bemf2_graphics_base(S.P, S.t, str);
+%S = load('sphere');
+%S.P = 1000*R*S.P;
+%S.P = S.P + repmat(Ctr, size(S.P, 1), 1);
+%str.EdgeColor = 'none'; str.FaceColor = [0 1 1]; str.FaceAlpha = 0.05; 
+%bemf2_graphics_base(S.P, S.t, str);
 
 %%  Plot centerline
-hold on;
-index = 2000:3000;
-plot3(1e-3*pointsline(index, 1), 1e-3*pointsline(index, 2), 1e-3*pointsline(index, 3), '-r', 'lineWidth', 4);
+%hold on;
+%index = 2000:3000;
+%plot3(1e-3*pointsline(index, 1), 1e-3*pointsline(index, 2), 1e-3*pointsline(index, 3), '-r', 'lineWidth', 4);
 
-daspect([1 1 1])
-camlight; lighting flat;
-xlabel('x'); ylabel('y'); zlabel('z');
-view(150, -10); axis off; camzoom(1.5);
+%daspect([1 1 1])
+%camlight; lighting flat;
+%xlabel('x'); ylabel('y'); zlabel('z');
+%view(150, -10); axis off; camzoom(1.5);
 
 %% Plot sphere above GM
-figure('color', 'w');
-tissue_to_plot = 'GM';
-t0 = t(Indicator==find(strcmp(tissue, tissue_to_plot)), :);    % (change indicator if necessary: 1-skin, 2-skull, etc.)
-str.EdgeColor = 'none'; str.FaceColor = [1 0.75 0.65]; str.FaceAlpha = 1.0; 
-bemf2_graphics_base(P, t0, str);
-str.EdgeColor = 'none'; str.FaceColor = [0 1 1]; str.FaceAlpha = 0.5; 
-bemf2_graphics_base(S.P, S.t, str);
+%figure('color', 'w');
+%tissue_to_plot = 'GM';
+%t0 = t(Indicator==find(strcmp(tissue, tissue_to_plot)), :);    % (change indicator if necessary: 1-skin, 2-skull, etc.)
+%str.EdgeColor = 'none'; str.FaceColor = [1 0.75 0.65]; str.FaceAlpha = 1.0; 
+%bemf2_graphics_base(P, t0, str);
+%str.EdgeColor = 'none'; str.FaceColor = [0 1 1]; str.FaceAlpha = 0.5; 
+%bemf2_graphics_base(S.P, S.t, str);
 
 %%  Plot centerline
-hold on;
-plot3(1e-3*pointsline(:, 1), 1e-3*pointsline(:, 2), 1e-3*pointsline(:, 3), '-r', 'lineWidth', 4);
+%hold on;
+%plot3(1e-3*pointsline(:, 1), 1e-3*pointsline(:, 2), 1e-3*pointsline(:, 3), '-r', 'lineWidth', 4);
 
-axis 'equal';  axis 'tight';   
-daspect([1 1 1]);
-set(gcf,'Color','White');
-daspect([1 1 1]);
-camlight('headlight'); lighting phong;   
-xlabel('x'); ylabel('y'); zlabel('z');
-view(33, 53); axis off; camzoom(3)
+%axis 'equal';  axis 'tight';   
+%daspect([1 1 1]);
+%set(gcf,'Color','White');
+%daspect([1 1 1]);
+%camlight('headlight'); lighting phong;   
+%xlabel('x'); ylabel('y'); zlabel('z');
+%view(33, 53); axis off; camzoom(3)

@@ -21,13 +21,13 @@ else
 end
 disp([newline 'Analytical solution loaded or evaluated in ' num2str(toc) ' s']);
 
-f1 = figure;
-bemf2_graphics_surf_field(P, t, PotNum, Indicator, objectnumber);
-title('numerical')
+%f1 = figure;
+%bemf2_graphics_surf_field(P, t, PotNum, Indicator, objectnumber);
+%title('numerical')
 
-f2 = figure;
-title('analytical')
-bemf2_graphics_surf_field(P, t, PotAnl, Indicator, objectnumber);
+%f2 = figure;
+%title('analytical')
+%bemf2_graphics_surf_field(P, t, PotAnl, Indicator, objectnumber);
 
 Error_2norm = norm(PotNum - PotAnl)/norm(PotAnl)
 Error_RDM   = norm(PotNum/norm(PotNum) - PotAnl/norm(PotAnl))
