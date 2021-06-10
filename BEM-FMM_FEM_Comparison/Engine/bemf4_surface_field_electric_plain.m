@@ -1,4 +1,4 @@
-function [P, E] = bemf4_surface_field_electric_plain(c, Center, Area)
+function [P, E] = bemf4_surface_field_electric_plain(c, Center, Area, prec)
 %   Computes potential/continuous electric field on a surface facet due to
 %   charges on ALL OTHER facets using plain FMM
 %   Self-terms causing discontinuity may not be included
@@ -8,8 +8,7 @@ function [P, E] = bemf4_surface_field_electric_plain(c, Center, Area)
    
     %  FMM 2019   
     %   Fields plus potentials of surface charges (potential not used)
-    %   Only FMM (without correction)
-    prec            = 1e-2; %   precision-> OK for surfaces
+    %   Only FMM (without correction)    
     pg              = 2;    %   potential and field are evaluated
     srcinfo.sources = Center';      %   source/target points
     srcinfo.charges = (c.*Area)';   %   real charges

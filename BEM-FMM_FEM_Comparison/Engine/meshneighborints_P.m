@@ -1,6 +1,6 @@
 function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, RnumberP, ineighborP)
-%   Accurate integration for electric field/electric potential on neighbor facets
-%   Copyright SNM 2018-2020
+%   Accurate integration for electric potential on neighbor facets
+%   Copyright SNM 2018-2021
     tic 
     N = size(t, 1);
     integralpe      = zeros(RnumberP, N);    %   exact potential integrals for array of neighbor triangles 

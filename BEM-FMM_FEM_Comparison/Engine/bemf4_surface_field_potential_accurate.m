@@ -12,7 +12,7 @@ function Potential = bemf4_surface_field_potential_accurate(c, Center, Area, PC)
     %   FMM plus correction
     tic
     const           = 1/(4*pi);
-    eps             = 1e-3;
+    eps             = 1e-1;
     pg              = 1;            %   only potential here
     srcinfo.sources = Center';
     srcinfo.charges = (c.*Area)';

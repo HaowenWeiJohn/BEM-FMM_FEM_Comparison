@@ -8,7 +8,7 @@ function [] = bemf2_graphics_base(P, t, c)
     p.EdgeColor = c.EdgeColor;
     p.FaceAlpha = c.FaceAlpha;
     daspect([1 1 1]);      
-    xlabel('x, mm'); ylabel('y, mm'); zlabel('z, mm');
+    xlabel('x, m'); ylabel('y, m'); zlabel('z, m');
 	
     NumberOfTrianglesInShell = size(t, 1);
     edges = meshconnee(t);

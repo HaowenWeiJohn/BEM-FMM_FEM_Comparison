@@ -15,7 +15,7 @@ function p = bemf5_volume_field_potential(Points, c, P, t, Center, Area, normals
     %   FMM 2019
     srcinfo.sources = Center';                      %   source points
     targ            = Points';                      %   target points
-    prec            = 1e-2;                         %   precision    
+    prec            = 1e-1;                         %   precision    
     pg      = 0;                                    %   nothing is evaluated at sources
     pgt     = 1;                                    %   potential is evaluated at target points
     srcinfo.charges = c.'.*Area';                   %   charges

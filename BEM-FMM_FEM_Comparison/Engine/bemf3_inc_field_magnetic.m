@@ -18,7 +18,7 @@ function Bpri = bemf3_inc_field_magnetic(strdipolemvector, strdipolemcenter, str
     srcinfo.sources = segpoints';   %   source points [3, N] - dipole centers
     srcinfo.nd      = 3;            %   three effective pseudo dipole sets    
     targ            = Points';      %   target points
-    prec            = 1e-2;         %   precision-->OK for surfaces
+    prec            = 1e-1;         %   precision-->OK for surfaces
     pg              = 0;            %   nothing is evaluated at sources
     pgt             = 1;            %   only potential is evaluated at targets
      

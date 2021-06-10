@@ -1,14 +1,10 @@
-function B = bemf5_volume_field_magnetic(Points, Pot, P, t, Center, Area, normals, difference, mu0, R, flag, planeABCD)
+function B = bemf5_volume_field_magnetic(Points, Pot, P, t, Center, Area, normals, difference, mu0, R, flag)
 %   Computes secondary magnetic field from the volumetric current
 %   distribution via the FMM in terms of the equivalent surface currents
 %   and pseudo electric potential anywhere in space. Performs accurate
 %   computations of all neighbor surface integrals
 %
 %   Copyright SNM 2018-2020
-
-    if(nargin < 12)
-        planeABCD = [];
-    end
 
     %  Compute equivalent dipole positions, directions, and moments
     M  = size(Center, 1);  %    number of equivalent dipoles
@@ -20,7 +16,7 @@ function B = bemf5_volume_field_magnetic(Points, Pot, P, t, Center, Area, normal
     srcinfo.sources = Center';      %   source points [3, N] - face centers
     srcinfo.nd      = 3;            %   three effective pseudo dipole sets    
     targ            = Points';      %   target points
-    prec            = 1e-2;         %   precision-->this value is OK for surfaces
+    prec            = 1e-1;         %   precision-->this value is OK for surfaces
     pg              = 0;            %   nothing is evaluated at sources
     pgt             = 1;            %   potential is evaluated at targets
      
@@ -49,21 +45,9 @@ function B = bemf5_volume_field_magnetic(Points, Pot, P, t, Center, Area, normal
     %   add precise integration instead   
     Size             = mean(sqrt(Area));    %   average triangle size
     const = mu0/(4*pi);     
-    if(isempty(planeABCD))
-        eligibleTriangles = 1:size(t, 1);
-    else
-        d1 = abs(planeABCD(1)*Center(:,1) + planeABCD(2)*Center(:,2) + planeABCD(3)*Center(:,3) + planeABCD(4));
-        d2 = norm(planeABCD(1:3));
-        d = d1./d2;
-        eligibleTriangles = find(d <= R*Size);
-    end
-    ineighborlocal   = rangesearch(Points, Center(eligibleTriangles, :), R*Size, 'NSMethod', 'kdtree'); % over triangles: M by X  
-    %ineighborlocal   = rangesearch(Points, Center, R*Size, 'NSMethod', 'kdtree'); % over triangles: M by X  
-    %for m =1:M
-    for j = 1:length(eligibleTriangles)
-        %index       = ineighborlocal{m};  % index into points that are close to triangle m   
-        index       = ineighborlocal{j};
-        m = eligibleTriangles(j);
+    ineighborlocal   = rangesearch(Points, Center, R*Size, 'NSMethod', 'kdtree'); % over triangles: M by X  
+    for m =1:M
+        index       = ineighborlocal{m};  % index into points that are close to triangle m   
         if ~isempty(index)
             temp        = repmat(Center(m, :), length(index), 1) - Points(index, :);   %   these are distances to the observation points
             DIST        = sqrt(dot(temp, temp, 2));                                    %   single column                
