@@ -71,20 +71,6 @@ function [Ctr, NoDipoles, I0, strdipolePplus, strdipolePminus, dlength, strdipol
     end
     strdipoleCurrent       = [+I0; -I0];
     
-    %%   Magnetic dipole subdivision (optional)
-    strdipolemvector   = zeros(D*NoDipoles, 3);
-    strdipolemcenter   = zeros(D*NoDipoles, 3);
-    strdipolemstrength = zeros(D*NoDipoles, 1);
-    for m = 1:NoDipoles
-        temp = (1/D)*(strdipolePplus(m, :) - strdipolePminus(m, :));
-        for d = 1:D 
-            arg = d+D*(m-1);
-            strdipolemvector(arg, :)     = temp;
-            strdipolemcenter(arg, :)     = strdipolePminus(m, :) + (d-1/2)*temp;
-            strdipolemstrength(arg, :)   = strdipoleCurrent(m);                  
-        end
-    end
-    
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;
 
