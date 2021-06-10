@@ -22,10 +22,10 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   Pools
 %
 %   "RnumberE" is number of neighbor triangles for analytical integration
-%   of electric field (suggestion for now: RunmberE=16)
+%   of electric field (suggestion for now: RunmberE=4)
 %
 %   "RnumberP" is number of neighbor triangles for analytical integration
-%   of electric potential (suggestion for now: RnumberP=16)
+%   of electric potential (suggestion for now: RnumberP=4)
 %
 %   Modifications by Paul Lunkenheimer
 %
@@ -54,9 +54,11 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     if ~isunix
         addpath(strcat(pwd, '\Engine'));
         addpath(strcat(pwd, '\io'));
+        addpath(strcat(pwd, '\Electrodes'));
     else
         addpath(strcat(pwd, '/Engine'));
         addpath(strcat(pwd, '/io'));
+        addpath(strcat(pwd, '\Electrodes'));
     end
     
     %%  Define EM constants
@@ -72,7 +74,24 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     enclosingTissueIdx  = (0:max(Indicator)-1)';
     P                   = P*1e-3;     % only if the original data were in mm!
     cond                = cond*1e3;   % only if the original data were in Amm!
-
+    
+    %% Refine two inner shells
+    [P3, t3, normals3]          = meshrefiner(P, t(Indicator==3, :), normals(Indicator==3, :));
+    [P4, t4, normals4]          = meshrefiner(P, t(Indicator==4, :), normals(Indicator==4, :));
+    t3                          = t3 + size(P, 1);
+    t4                          = t4 + size(P, 1) + + size(P3, 1);
+    P                           = [P; P3; P4];
+    t(Indicator==3, :)          = [];
+    t(Indicator==4, :)          = [];
+    t                           = [t; t3; t4];
+    normals(Indicator==3, :)    = [];
+    normals(Indicator==4, :)    = [];
+    normals                     = [normals; normals3; normals4];
+    Indicator(Indicator==3)     = [];
+    Indicator(Indicator==4)     = [];
+    Indicator                   = [Indicator; repmat(3, size(t3, 1), 1); repmat(4, size(t4, 1), 1)];
+    [P, t]                      = fixmesh(P, t);    
+    
     %%  Fix triangle orientation (just in case, optional)
     t = meshreorient(P, t, normals);
 
@@ -105,9 +124,8 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     ineighborP      = ineighborP';          %   do transpose  
 
     parpool(numThreads);
-    %[EC, PC] = meshneighborints(P, t, normals, Area, Center, RnumberE, RnumberP, ineighborE, ineighborP, numThreads);
-    EC = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE);
-    PC = meshneighborints_P(P, t, normals, Area, Center, RnumberP, ineighborP);
+    EC                  = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE);
+    [PC, integralpd]    = meshneighborints_P(P, t, normals, Area, Center, RnumberP, ineighborP);
     delete(gcp('nocreate'));
     
     %%   Normalize sparse matrix EC by variable contrast (for speed up)

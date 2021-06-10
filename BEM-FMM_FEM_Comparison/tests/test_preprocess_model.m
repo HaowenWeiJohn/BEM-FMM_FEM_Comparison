@@ -22,7 +22,9 @@ numThreads = 4;     % Might not be valid on your machine!
 RnumberE = 128;
 RnumberP = 128;
 
-p = preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP);
+p = {};
+[p.P, p.t, p.normals, p.Area, p.Center, p.Indicator, p.tissue, p.cond, p.enclosingTissueIdx, p.condin, p.condout, p.contrast, p.eps0, p.mu0, p.tneighbor, p.EC, p.PC] = ...
+    preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP);
 
 %% And compare with results created with original "Model/model01_main_script"
 clearvars -except p slash;
@@ -50,9 +52,30 @@ for i=1:length(names)
        disp(p.tissue);
        continue;
     end
-    if ~(all(s.(name)==p.(name), 'all'))
-       disp("Unequal: " + name); 
+    if (length(name)==1 && all(name=='P'))
+       continue;
     end
+    if (length(name)==length('enclosingTissueIdx') && all(name=='enclosingTissueIdx'))
+        assert((all(s.(name)(:, 1)==p.(name), 'all')));   
+        continue;
+    end
+    if (length(name)==1 && all(name=='t'))
+        for k=unique(p.Indicator)'
+            assert(sum(s.Indicator==k, 1)==sum(p.Indicator==k, 1));
+            assert(all(abs(p.P(p.t(p.Indicator==k, 1), :) - s.P(s.t(s.Indicator==k, 1), :)) < 1e4*eps, 'all'));
+            assert(all(abs(p.P(p.t(p.Indicator==k, 2), :) - s.P(s.t(s.Indicator==k, 2), :)) < 1e4*eps, 'all'));
+            assert(all(abs(p.P(p.t(p.Indicator==k, 3), :) - s.P(s.t(s.Indicator==k, 3), :)) < 1e4*eps, 'all'));
+        end
+        continue;
+    end
+    if (size(p.(name), 1)==size(p.t, 1))
+        for k=unique(p.Indicator)'
+            assert(sum(s.Indicator==k, 1)==sum(p.Indicator==k, 1));
+            assert((all(s.(name)(s.Indicator==k)==p.(name)(p.Indicator==k), 'all')));
+        end
+        continue;
+    end
+    assert((all(s.(name)==p.(name), 'all')));
 end
 
 %% Output for user
