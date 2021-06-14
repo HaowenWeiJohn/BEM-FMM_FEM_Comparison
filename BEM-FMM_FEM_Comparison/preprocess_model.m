@@ -2,6 +2,8 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
             preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
 %
+%   First run "setup_electrodes" as mesh must be refined around electrodes!
+
 %   Please see "read_cond" and "read_tissue" for specifications of ".cond"
 %   and ".tiss" files
 %   Conductivity must be in S/mm!
@@ -14,6 +16,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   The Indicators must be integers 0, 1, ..., N
 %   s.t. tissue i encloses tissue i+1
 %   Mesh must be in mm!
+%   First run "setup_electrodes" as mesh must be refined around electrodes!
 %
 %   The output filenames must be ".mat" files
 %   One is the combined mesh, the other additional precomputed results
@@ -68,7 +71,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     %% Load tissue names, conducitivies and mesh
     tissue              = read_tissue(filename_tissue);
     cond                = read_cond(filename_cond);
-    load(filename_mesh);
+    load(filename_mesh, 'P', 't', 'normals', 'Indicator');
     assert(length(tissue)==length(unique(Indicator)));
     Indicator           = Indicator + 1;
     enclosingTissueIdx  = (0:max(Indicator)-1)';
@@ -136,6 +139,36 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     EC  = CO.*EC;
 
     save(filename_outputP, 'tneighbor', 'EC', 'PC', '-v7.3');
+    
+    %%  Electrode preconditioner M (left). Electrodes may be assigned to different tissues
+    tic
+    load electrode_data;
+    ElectrodeIndexes = cell(max(IndicatorElectrodes), 1);
+    for j = 1:max(IndicatorElectrodes)
+        ElectrodeIndexes{j} = find(IndicatorElectrodes==j);
+    end
+    indexe = transpose(vertcat(ElectrodeIndexes{:}));   %   this index is not contiguous
+
+    Ne          = length(indexe); 
+    tempC       = Center(indexe, :); 
+    tempA       = Area(indexe); 
+    A           = repmat(tempA, 1, length(tempA));
+    M           = (1/(4*pi))*1./dist(tempC').*A';       %   base preconditioner matrix
+    for m = 1:Ne                                        %   base matrix with zero elements
+        M(m, m) = 0;
+    end
+    for m = 1:Ne                                                    %   put in neighbor integrals
+        indexf                  = indexe(m);                        %   global facet number on electrodes
+        mneighbors              = ineighborP(:, indexf);            %   global neighbor numbers of facet indexf
+        temp                    = intersect(indexe, mneighbors);    %   global numbers for neighbors of facet indexf within electrodes
+        for n = 1:length(temp)
+            indexintoM  = find(temp(n)==indexe);                    %   local number for the neighbor temp(n) in indexe - into matrix
+            indexintoPD = find(mneighbors==temp(n));                %   local index for the neighbor temp(n) in integralpd - into integralpd
+            M(indexintoM, m)  = M(indexintoM, m) + integralpd(indexintoPD, indexf)/(4*pi);
+        end
+    end
+    M = inv(M);                                        %   direct inversion - replace
+    disp([newline 'Preconditioner computed in ' num2str(toc) ' s']);
     
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;
