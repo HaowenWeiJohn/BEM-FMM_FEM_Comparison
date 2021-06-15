@@ -1,9 +1,9 @@
-function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC] = ...
-            preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP)
+function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC, M, integralpd, ineighborE, ineighborP] = ...
+            preprocess_model(filename_mesh, filename_electrodes, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
 %
 %   First run "setup_electrodes.m" as mesh must be refined around electrodes!
-
+%
 %   Please see "read_cond" and "read_tissue" for specifications of ".cond"
 %   and ".tiss" files
 %   Conductivity must be in S/mm!
@@ -17,7 +17,9 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   s.t. tissue i encloses tissue i+1
 %   Mesh must be in mm!
 %   First run "setup_electrodes.m" as mesh must be refined around electrodes!
-%   Then load output of "setup_electrodes.m" as "filename_mesh"
+%   Then set "filename_mesh" parameter to output of "setup_electrodes.m"
+%
+%   "filename_electrodes" is the other output of "setup_electrodes.m"
 %
 %   The output filenames must be ".mat" files
 %   One is the combined mesh, the other additional precomputed results
@@ -138,12 +140,9 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     jj  = repmat(1:N, RnumberE, 1); 
     CO  = sparse(ii, jj, contrast(ineighborE));
     EC  = CO.*EC;
-
-    save(filename_outputP, 'tneighbor', 'EC', 'PC', '-v7.3');
     
     %%  Electrode preconditioner M (left). Electrodes may be assigned to different tissues
-    tic
-    load electrode_data;
+    load(filename_electrodes, 'IndicatorElectrodes');
     ElectrodeIndexes = cell(max(IndicatorElectrodes), 1);
     for j = 1:max(IndicatorElectrodes)
         ElectrodeIndexes{j} = find(IndicatorElectrodes==j);
@@ -170,6 +169,9 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     end
     M = inv(M);                                        %   direct inversion - replace
     disp([newline 'Preconditioner computed in ' num2str(toc) ' s']);
+    
+    %% Save precomputed, more exact neighbor integral correction terms and electrode preconditioner 
+    save(filename_outputP, 'tneighbor', 'EC', 'PC', 'M', 'integralpd', 'ineighborE', 'ineighborP', '-v7.3');
     
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

@@ -1,5 +1,5 @@
 %% Move this test to parent folder to run it
-%   Does not varify "EC" and "PC"
+%   Does not varify "EC", "PC" and electrode preconditioner data
 %   (but code for computing these variables is exactly the same as in
 %   original)
 
