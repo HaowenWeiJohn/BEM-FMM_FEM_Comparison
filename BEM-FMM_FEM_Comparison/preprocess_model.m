@@ -2,7 +2,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
             preprocess_model(filename_mesh, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
 %
-%   First run "setup_electrodes" as mesh must be refined around electrodes!
+%   First run "setup_electrodes.m" as mesh must be refined around electrodes!
 
 %   Please see "read_cond" and "read_tissue" for specifications of ".cond"
 %   and ".tiss" files
@@ -16,7 +16,8 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   The Indicators must be integers 0, 1, ..., N
 %   s.t. tissue i encloses tissue i+1
 %   Mesh must be in mm!
-%   First run "setup_electrodes" as mesh must be refined around electrodes!
+%   First run "setup_electrodes.m" as mesh must be refined around electrodes!
+%   Then load output of "setup_electrodes.m" as "filename_mesh"
 %
 %   The output filenames must be ".mat" files
 %   One is the combined mesh, the other additional precomputed results

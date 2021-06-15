@@ -1,5 +1,4 @@
-function [] = ...
-                setup_electrodes(filename_mesh, filename_electrodes, filename_output_mesh, filename_output_electrodes)
+function setup_electrodes(filename_mesh, filename_electrodes, RadE, filename_output_mesh, filename_output_electrodes)
 %   Imitates commands executed in "Electrodes/electrodes01_imprint.m"
 %
 %   Triangular mesh must be given as ".mat" file containing:
@@ -10,6 +9,9 @@ function [] = ...
 %   The Indicators must be integers 0, 1, ..., N
 %   s.t. tissue i encloses tissue i+1
 %   Mesh must be in mm!
+%
+%   "RadE" is the radius of all electrodes as a scalar value in mm
+%   (suggestion for now: RadE=5)
 %
 %   Modifications by Paul Lunkenheimer
 %
@@ -34,17 +36,22 @@ function [] = ...
     if ~isunix
         addpath(strcat(pwd, '\io'));
         addpath(strcat(pwd, '\Electrodes'));
+        addpath(strcat(pwd, '\Engine'));
     else
         addpath(strcat(pwd, '/io'));
         addpath(strcat(pwd, '/Electrodes'));
+        addpath(strcat(pwd, '/Engine'));
     end
     
     %% Load mesh to imprint electrodes
     load(filename_mesh, 'P', 't', 'normals', 'Indicator');
-    t_outer = t(Indicator==0);
-    normals_outer = normals(Indicator==0);
+    t_outer = t(Indicator==0, :);
+    normals_outer = normals(Indicator==0, :);
     
-    %% Load electrodes
+    %% Load electrodes    
+    strge.PositionOfElectrodes = read_electrodes(filename_electrodes);
+    strge.NumberOfElectrodes   = size(strge.PositionOfElectrodes, 1);
+    strge.RadiusOfElectrodes   = RadE*ones(1, strge.NumberOfElectrodes);
     
     
     %% Imprint electrodes
@@ -72,11 +79,11 @@ function [] = ...
     IndicatorElectrodes(end+1:size(t_outer, 1)) = 0;
     
     %% Insert into whole mesh
-    t_outer                 = size(P, 1) + t_outer;
-    P                       = [P; P_outer];    
-    t(Indicator==0)         = [];
+    P                       = [P_outer; P];   
+    t(Indicator==0, :)      = [];
+    t                       = t + size(P_outer, 1);
     t                       = [t_outer; t];
-    normals(Indicator==0)   = [];
+    normals(Indicator==0, :)= [];
     normals                 = [normals_outer; normals];
     Indicator(Indicator==0) = [];
     Indicator               = [zeros(size(t_outer, 1), 1); Indicator];
@@ -84,7 +91,7 @@ function [] = ...
     
     %% Save
     save(filename_output_electrodes, 'IndicatorElectrodes', 'strge');
-    save(filename_output_mesh, 'P', 't', 'normals');
+    save(filename_output_mesh, 'P', 't', 'normals', 'Indicator');
     
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;
