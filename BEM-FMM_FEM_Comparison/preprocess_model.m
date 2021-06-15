@@ -1,5 +1,5 @@
 function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC, M, integralpd, ineighborE, ineighborP] = ...
-            preprocess_model(filename_mesh, filename_electrodes, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, RnumberE, RnumberP)
+            preprocess_model(filename_mesh, filename_electrodes, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, TnumberE, GnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
 %
 %   First run "setup_electrodes.m" as mesh must be refined around electrodes!
@@ -27,8 +27,11 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   "numThreads" is the number of cores to be used for MATLAB Parallel
 %   Pools
 %
-%   "RnumberE" is number of neighbor triangles for analytical integration
-%   of electric field (suggestion for now: RunmberE=4)
+%   "TnumberE" is number of topological neighbor triangles for analytical
+%   integration of electric field (suggestion for now: TunmberE=10)
+%
+%   "GnumberE" is number of geometrical neighbor triangles for analytical
+%   integration of electric field (suggestion for now: GunmberE=0)
 %
 %   "RnumberP" is number of neighbor triangles for analytical integration
 %   of electric potential (suggestion for now: RnumberP=4)
@@ -113,33 +116,56 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     [P, t, normals, Center, Area, Indicator, condin, condout, contrast] = ...
         clean_coincident_facets(P, t, normals, Center, Area, Indicator, condin, condout, contrast);
 
+    %%   Save base data
+    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0');
+    
     %%   Find topological neighbors
     DT = triangulation(t, P); 
     tneighbor = neighbors(DT);
     % Fix cases where not all triangles have three neighbors
     tneighbor = pad_neighbor_triangles(tneighbor);
+    
+    %%   Find topological neighbors (same surface, variable)
+    TnumberE   = 10;
+    tineighbor = [];
+    if TnumberE>0
+        for m = 1:length(name)
+            index           = Indicator == m;
+            dummy           = Center;
+            dummy(~index, :)= Inf;
+            temp            = knnsearch(dummy, Center(index, :), 'k', TnumberE);   % [1:N, 1:RnumberE]
+            tineighbor      = [tineighbor; temp];
+        end
+    end
 
-    %%   Save base data
-    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0');
+    %%   Find extra geometrical neighbors (neighbor surfaces, variable)
+    GnumberE   = 0;
+    eineighbor = [];
+    if GnumberE>0
+        for m = 1:length(name)
+            index           = Indicator == m;
+            dummy           = Center;
+            dummy(index, :) = Inf;
+            temp            = knnsearch(dummy, Center(index, :), 'k', GnumberE);   % [1:N, 1:RnumberE]
+            eineighbor      = [eineighbor; temp];
+        end
+    end
 
-    %%   Add accurate integration for electric field/electric potential on neighbor facets
-    %   Indices into neighbor triangles
-    ineighborE      = knnsearch(Center, Center, 'k', RnumberE);   % [1:N, 1:RnumberE]
+    %%  Combine all neighbors together
+    RnumberE                                    = TnumberE + GnumberE;
+    ineighborE(:, 1:TnumberE)                   = tineighbor;
+    ineighborE(:, TnumberE+1:TnumberE+GnumberE) = eineighbor;
+    
+    %%   Add accurate integration for electric field/electric potential on all neighbor facets
+    %   Indexes into neighbor triangles
     ineighborP      = knnsearch(Center, Center, 'k', RnumberP);   % [1:N, 1:RnumberP]
     ineighborE      = ineighborE';          %   do transpose  
     ineighborP      = ineighborP';          %   do transpose  
 
+    % Start parallel pool for neighbor integrals
     parpool(numThreads);
-    EC                  = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE);
+    EC                  = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE, TnumberE);
     [PC, integralpd]    = meshneighborints_P(P, t, normals, Area, Center, RnumberP, ineighborP);
-    delete(gcp('nocreate'));
-    
-    %%   Normalize sparse matrix EC by variable contrast (for speed up)
-    N   = size(Center, 1);
-    ii  = ineighborE;
-    jj  = repmat(1:N, RnumberE, 1); 
-    CO  = sparse(ii, jj, contrast(ineighborE));
-    EC  = CO.*EC;
     
     %%  Electrode preconditioner M (left). Electrodes may be assigned to different tissues
     load(filename_electrodes, 'IndicatorElectrodes');

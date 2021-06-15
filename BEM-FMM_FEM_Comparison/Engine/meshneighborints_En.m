@@ -1,4 +1,4 @@
-function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE)
+function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE, TnumberE)
 %   Accurate integration for electric field on neighbor facets using the solid angle approach
 %   Copyright WAW/SNM 2020-2021
     N = size(t, 1);
@@ -45,7 +45,9 @@ function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineig
         %Now weight and sum each column of Int_temp properly to get a single row
         %weightsS: row vector containing contribution of each observation point to final triangle
         Int = weightsS*Int_temp;    % Exploiting dimensions of weightsS and Int_temp to ensure proper product occurs
-        Int(1) = mean(Int(2:end));   % Self integral, SNM, 06/05/21
+        if TnumberE>0
+            Int(1) = mean(Int(2:TnumberE));   % Self integral, SNM, 06/09/21
+        end
         integrale(n, :) = Int;       
            
         %   Center-point electric-field integrals
