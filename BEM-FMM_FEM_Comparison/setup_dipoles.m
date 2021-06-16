@@ -1,7 +1,7 @@
 function [Ctr, NoDipoles, I0, strdipolePplus, strdipolePminus, dlength, strdipolesig, strdipoleCurrent, strdipolemvector, strdipolemcenter, strdipolemstrength] = ...
                 setup_dipoles(filename_dipoles, dipole_length, dipole_tissue_index, cond, D)
-%   Imitates commands executed in "bem1_setup_dipole.m" and
-%   "bem1_setup_dipoles.m"
+%   Imitates commands executed in "bem1_setup_dipole.m",
+%   "bem1_setup_dipoles.m" and "bem1_precompute_dipoles.m"
 %
 %   Unifies both scripts into one function and reads dipoles from file
 %   Dipole locations must be in mm and moments in Amm!
