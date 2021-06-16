@@ -1,18 +1,21 @@
-function [c, resvec, conservation_law_error, Einc, Pinc] = ...
-    charge_engine(filename_model, R, iter, relres, weight, strdipolePplus, strdipolePminus, strdipolesig, strdipoleCurrent, Ctr)
+function [c, resvec, electrodeCurrents, En, Ptot] = ...
+    charge_engine(filename_model, filename_modelP, filename_output, iter, relres, prec, weight, M, indexe, V)
 %   Imitates commands executed in "bem2_charge_engine"
 %
 %   "filename_model" is the mesh data saved in "preprocess_model" under the
 %   filename "filename_output" (not under "filename_outputP"!)
 %
-%   "R" is used for Gaussian integration
-%   (suggested for now: R=1)
+%   "filename_modelP" is the mesh data saved in "preprocess_model" under the
+%   filename "filename_outputP"
 %
 %   "iter" is maximum possible number of iterations in the solution
 %   (is 25 in original script)
 %
 %   "relres" is minimum acceptable relative residual
 %   (is 1e-12 in original script)
+%
+%   precis is the precision for the FMM computations
+%   (is 1e-2 in original script)
 %
 %   "weight" is weight of the charge conservation law
 %   to be added (empirically found)
@@ -38,7 +41,6 @@ function [c, resvec, conservation_law_error, Einc, Pinc] = ...
 %   Different timers
 %   Model data is loaded from file by function and not in workspace
 %   Some Variables from Script are now Parameters
-%   Do not save solution
 
     %% Add paths
     if ~isunix
@@ -48,35 +50,30 @@ function [c, resvec, conservation_law_error, Einc, Pinc] = ...
     end
 
     %% Load model
-    load(filename_model, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0');
+    load(filename_model, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'ElectrodeIndexes', 'indexe', 'V');
+    load(filename_modelP, 'tneighbor', 'EC', 'PC', 'M', 'integralpd', 'ineighborE', 'ineighborP');
 
-    %%  Right-hand side b of the matrix equation Zc = b
+    %%  Solution for voltage electrodes
+    %  Right-hand side b of the matrix equation Zc = b
     %   Surface charge density is normalized by eps0: real charge density is eps0*c
-    %   Gaussian integration is used here
-    %[Einc, Pinc] = bemf3_inc_field_electric_gauss(strdipolePplus, strdipolePminus, strdipolesig, strdipoleCurrent, P, t);
+    b           = zeros(size(t, 1), 1);           %    Right-hand side of the matrix equation
+    b(indexe)                   = M*V(indexe);    %    Electrodes held at constant voltage
+    %  GMRES iterative solution     
+    MATVEC                      = @(c) bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);
+    [c, flag, rres, its, resvec]= gmres(MATVEC, b, [], relres, iter, [], [], b); 
+    %   Total electrode currents
+    En = bemf4_surface_field_electric_accurate(c, Center, Area, normals, EC, prec);   % normal electric field just inside
+    electrodeCurrents = zeros(length(ElectrodeIndexes), 1);    
+    for j = 1:length(ElectrodeIndexes)
+        index = ElectrodeIndexes{j};       
+        electrodeCurrents(j) = -sum(En(index).*Area(index).*condin(index));
+    end
+    electrodeCurrents
+    %   Surface electric potential everywhere
+    Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
 
-    gaussRadius = 6 * R;
-    [Einc, Pinc] = bemf3_inc_field_electric_gauss_selective(strdipolePplus, strdipolePminus, strdipolesig, strdipoleCurrent, P, t, Center, Ctr, gaussRadius);
-    disp([newline 'Incident field calculated in ' num2str(toc) ' s']);
-
-    b        = 2*(contrast.*sum(normals.*Einc, 2));                         %  Right-hand side of the matrix equation
-
-    %%  GMRES iterative solution (native MATLAB GMRES is used)
-    %   MATVEC is the user-defined function of c equal to the left-hand side of the matrix equation LHS(c) = b
-    MATVEC = @(c) bemf4_surface_field_lhs(c, Center, Area, contrast, normals, weight, EC);     
-    [c, flag, rres, its, resvec] = gmres(MATVEC, b, [], relres, iter, [], [], b);
-    
-    %%  Check charge conservation law (optional)
-    conservation_law_error = sum(c.*Area)/sum(abs(c).*Area);
-
-    %%   Topological low-pass solution filtering (repeat if necessary)
-    % c = (c.*Area + sum(c(tneighbor).*Area(tneighbor), 2))./(Area + sum(Area(tneighbor), 2));
-
-    %%   Find and save surface electric potential
-    % Not needed atm as we will evaluate in arbitrary points (not 'Center')
-    %Padd = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
-    %%Padd = bemf4_surface_field_potential_subdiv(c, P, t, Area, 'barycentric', 3);
-    %Ptot = Pinc + Padd;     %   Continuous total electric potential at interfaces
+    %% Save output - this can be used to compute potentials for arbitrary dipoles using reciprocity
+    save(filename_output, 'c', 'electrodeCurrents', 'En', 'Ptot');
 
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

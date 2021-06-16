@@ -1,6 +1,7 @@
-function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC, M, integralpd, ineighborE, ineighborP] = ...
+function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC, M, integralpd, ineighborE, ineighborP, 'ElectrodeIndexes', indexe, V] = ...
             preprocess_model(filename_mesh, filename_electrodes, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, TnumberE, GnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
+%   and "bem1_configure_model.m"
 %
 %   First run "setup_electrodes.m" as mesh must be refined around electrodes!
 %
@@ -38,13 +39,19 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %
 %   Modifications by Paul Lunkenheimer
 %
-%%   Original Documentation:
+%%   Original Documentation "Model/model01_main_script.m":
 %
 %   This is a mesh processor script: it computes basis triangle parameters
 %   and necessary potential integrals, and constructs a combined mesh of a
 %   multi-object structure (for example, a head or a whole body)
 %
 %   Copyright SNM/WAW 2017-2020
+%
+%%   Original Documentation "bem1_configure_model.m":
+%
+%   This script introduces local model/electrode data
+%
+%   Copyright SNM 2018-2021
 %
 %%   Modifications:
 %
@@ -115,9 +122,6 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     %%  Check for and process triangles that have coincident centroids
     [P, t, normals, Center, Area, Indicator, condin, condout, contrast] = ...
         clean_coincident_facets(P, t, normals, Center, Area, Indicator, condin, condout, contrast);
-
-    %%   Save base data
-    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0');
     
     %%   Find topological neighbors
     DT = triangulation(t, P); 
@@ -195,6 +199,24 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     end
     M = inv(M);                                        %   direct inversion - replace
     disp([newline 'Preconditioner computed in ' num2str(toc) ' s']);
+
+    %%   Redefine array of contrasts for electrodes
+    for j = 1:length(ElectrodeIndexes)
+        contrast(ElectrodeIndexes{j})   = 1;
+    end
+
+    %%  Define the voltage excitation vector
+    %   Voltage (V) applied to each electrode
+    electrodeVoltages = [+1, -1];                     %   For electrode configuration 1
+
+    V = zeros(size(t, 1), 1);                           %   Preallocate facet voltage list
+    for enumber = 1:length(ElectrodeIndexes)
+        index       = ElectrodeIndexes{enumber};
+        V(index, :) = electrodeVoltages(enumber);
+    end
+
+    %%   Save base data
+    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'ElectrodeIndexes', 'indexe', 'V');
     
     %% Save precomputed, more exact neighbor integral correction terms and electrode preconditioner 
     save(filename_outputP, 'tneighbor', 'EC', 'PC', 'M', 'integralpd', 'ineighborE', 'ineighborP', '-v7.3');
