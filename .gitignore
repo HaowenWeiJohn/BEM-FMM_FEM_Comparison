@@ -1,5 +1,6 @@
-# Keep some folders locally but exclude them from git:
-Version0.3_example1_hom_sphere
-Version0.3_example2_4layer_sphere
-Version0.3_example3_subject110411
-example_data
+# Ad-hoc tests
+tests.m
+
+# Output
+CombinedMesh_test.mat
+CombinedMeshP_test.mat
