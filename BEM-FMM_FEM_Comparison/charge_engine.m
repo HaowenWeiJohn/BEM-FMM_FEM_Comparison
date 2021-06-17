@@ -68,11 +68,12 @@ function [c, resvec, electrodeCurrents, En, Ptot] = ...
         index = ElectrodeIndexes{j};       
         electrodeCurrents(j) = -sum(En(index).*Area(index).*condin(index));
     end
-    electrodeCurrents
     %   Surface electric potential everywhere
     Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
 
-    %% Save output - this can be used to compute potentials for arbitrary dipoles using reciprocity
+    %% Save output
+    % This can later be used to compute potentials for arbitrary dipoles
+    % using reciprocity
     save(filename_output, 'c', 'electrodeCurrents', 'En', 'Ptot');
 
     %% Remove added paths
