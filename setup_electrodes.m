@@ -1,4 +1,5 @@
-function setup_electrodes(filename_mesh, filename_electrodes, filename_output_mesh, filename_output_electrodes)
+function [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
+             setup_electrodes(filename_mesh, filename_electrodes)
 %   Imitates commands executed in "Electrodes/electrodes01_imprint.m"
 %
 %   Triangular mesh must be given as ".mat" file containing:
@@ -26,6 +27,7 @@ function setup_electrodes(filename_mesh, filename_electrodes, filename_output_me
 %
 %   Execute as function not as script
 %   Returns all computed data
+%   Does not save any data
 %   No GUI output
 %   Modified verbosity
 %   Different timers
@@ -47,26 +49,26 @@ function setup_electrodes(filename_mesh, filename_electrodes, filename_output_me
     load(filename_mesh, 'P', 't', 'normals', 'Indicator');
     t_outer       = t(Indicator==0, :);
     normals_outer = normals(Indicator==0, :);
+    P_outer = P;
+    [P_outer, t_outer] = fixmesh(P_outer, t_outer);
     
-    NumberOfTrianglesOriginal = size(t_outer, 1);
-    center                    = meshtricenter(P, t_outer);
-    edges                     = meshconnee(t_outer);
-    temp                      = P(edges_outer(:, 1), :) - P(edges_outer(:, 2), :);
+    edges_outer               = meshconnee(t_outer);
+    temp                      = P_outer(edges_outer(:, 1), :) - P_outer(edges_outer(:, 2), :);
     Mesh.AvgEdgeLength        = mean(sqrt(dot(temp, temp, 2)));
     
     %% Load electrodes    
     strge.PositionOfElectrodes = read_electrodes(filename_electrodes);
     strge.NumberOfElectrodes   = size(strge.PositionOfElectrodes, 1);
-    RadE = 1.5*Mesh.AvgEdgeLength    % electrode radius in mm (at least 3 triangles along the diameter) 
-    strge.RadiusOfElectrodes   = RadE*ones(1, strge.NumberOfElectrodes);   % in mm here
+    RadE                       = 1.5*Mesh.AvgEdgeLength;    % electrode radius in mm (at least 3 triangles along the diameter) 
+    strge.RadiusOfElectrodes   = RadE*ones(1, strge.NumberOfElectrodes);    % in mm here
     
     %% Prepare imprinting of electrodes - refine mesh at electrodes
     for m = 1:strge.NumberOfElectrodes    
-        [P, t, normals] = mesh_refinement(P, t, normals, strge.PositionOfElectrodes(m, :), RadE);
+        [P_outer, t_outer, normals_outer] = mesh_refinement(P_outer, t_outer, normals_outer, strge.PositionOfElectrodes(m, :), RadE);
     end
     
     %% Imprint electrodes
-    [P_outer, t_outer, normals_outer, IndicatorElectrodes] = meshimprint(P, t_outer, normals_outer, strge);
+    [P_outer, t_outer, normals_outer, IndicatorElectrodes] = meshimprint(P_outer, t_outer, normals_outer, strge);
     
     %% Put electrodes up front sequentially (1, 2, 3)
     tt = [];
@@ -99,10 +101,6 @@ function setup_electrodes(filename_mesh, filename_electrodes, filename_output_me
     Indicator(Indicator==0) = [];
     Indicator               = [zeros(size(t_outer, 1), 1); Indicator];
     [P, t]                  = fixmesh(P, t);
-    
-    %% Save
-    save(filename_output_electrodes, 'IndicatorElectrodes', 'strge');
-    save(filename_output_mesh, 'P', 't', 'normals', 'Indicator');
     
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

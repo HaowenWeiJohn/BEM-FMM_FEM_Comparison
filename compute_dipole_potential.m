@@ -1,5 +1,5 @@
 function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
-                compute_dipole_potential(filename_dipoles, c, P, t, Center, Area, normals, R, prec)
+                compute_dipole_potential(filename_dipoles, c, P, t, Center, Area, normals, electrodeCurrents, R, prec)
 %   Imitates commands executed in "bem1_setup_dipole.m",
 %   "bem1_setup_dipoles.m" and "bem1_precompute_dipoles.m" as well as
 %   "bem6_comparison_analytical_all_dipoles_hor.m", 
@@ -16,6 +16,7 @@ function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
 %   Does not compare with analytical solution!
 %
 %   "c" is solution charge distribution computed in "charge_engine.m"
+%   "electrodeCurrents" as well
 %
 %   "P, t, Center, Area, normals" are usual model data computed in
 %   "preprocess_model.m"
@@ -84,8 +85,10 @@ function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
     %% Add paths
     if ~isunix
         addpath(strcat(pwd, '\io'));
+        addpath(strcat(pwd, '\Engine'));
     else
         addpath(strcat(pwd, '/io'));
+        addpath(strcat(pwd, '/Engine'));
     end
     
     %% Load dipole(s) from file
@@ -96,7 +99,7 @@ function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
     %%  Compute electric potential for dipoles using reciprocity
     E = bemf5_volume_field_electric(1e-3*dipole_ctr, c, P, t, Center, Area, normals, R, prec);
                                            
-    VoltageDifference = - dot(E, 1e-3*dipoleMomentH, 2)/abs(electrodeCurrents(1));  % Reciprocity
+    VoltageDifference = - dot(E, 1e-3*dipole_moment, 2)/abs(electrodeCurrents(1));  % Reciprocity
 
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

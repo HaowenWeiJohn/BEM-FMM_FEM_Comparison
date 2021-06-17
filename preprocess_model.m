@@ -1,5 +1,5 @@
-function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueIdx, condin, condout, contrast, eps0, mu0, tneighbor, EC, PC, M, integralpd, ineighborE, ineighborP, 'ElectrodeIndexes', indexe, V] = ...
-            preprocess_model(filename_mesh, filename_electrodes, filename_cond, filename_tissue, filename_output, filename_outputP, numThreads, TnumberE, GnumberE, RnumberP)
+function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, cond, condin, condout, contrast, eps0, mu0, EC, PC, M, integralpd, ineighborE, ineighborP, ElectrodeIndexes, indexe, V] = ...
+             preprocess_model(P, t, normals, Indicator, IndicatorElectrodes, filename_cond, filename_tissue, numThreads, TnumberE, GnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
 %   and "bem1_configure_model.m"
 %
@@ -18,9 +18,10 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %   s.t. tissue i encloses tissue i+1
 %   Mesh must be in mm!
 %   First run "setup_electrodes.m" as mesh must be refined around electrodes!
-%   Then set "filename_mesh" parameter to output of "setup_electrodes.m"
+%   Then pass this refined mesh as arguments "P", "t", "normals" and
+%   "Indicator"
 %
-%   "filename_electrodes" is the other output of "setup_electrodes.m"
+%   "IndicatorElectrodes" and "strge" is the output of "setup_electrodes.m"
 %
 %   The output filenames must be ".mat" files
 %   One is the combined mesh, the other additional precomputed results
@@ -57,6 +58,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
 %
 %   Execute as function not as script
 %   Returns all computed data
+%   Does not save any data
 %   No GUI output
 %   Modified verbosity
 %   Different timers
@@ -84,7 +86,6 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     %% Load tissue names, conducitivies and mesh
     tissue              = read_tissue(filename_tissue);
     cond                = read_cond(filename_cond);
-    load(filename_mesh, 'P', 't', 'normals', 'Indicator');
     assert(length(tissue)==length(unique(Indicator)));
     Indicator           = Indicator + 1;
     enclosingTissueIdx  = (0:max(Indicator)-1)';
@@ -123,17 +124,10 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     [P, t, normals, Center, Area, Indicator, condin, condout, contrast] = ...
         clean_coincident_facets(P, t, normals, Center, Area, Indicator, condin, condout, contrast);
     
-    %%   Find topological neighbors
-    DT = triangulation(t, P); 
-    tneighbor = neighbors(DT);
-    % Fix cases where not all triangles have three neighbors
-    tneighbor = pad_neighbor_triangles(tneighbor);
-    
     %%   Find topological neighbors (same surface, variable)
-    TnumberE   = 10;
     tineighbor = [];
     if TnumberE>0
-        for m = 1:length(name)
+        for m = 1:length(tissue)
             index           = Indicator == m;
             dummy           = Center;
             dummy(~index, :)= Inf;
@@ -143,10 +137,9 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     end
 
     %%   Find extra geometrical neighbors (neighbor surfaces, variable)
-    GnumberE   = 0;
     eineighbor = [];
     if GnumberE>0
-        for m = 1:length(name)
+        for m = 1:length(tissue)
             index           = Indicator == m;
             dummy           = Center;
             dummy(index, :) = Inf;
@@ -170,9 +163,9 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
     parpool(numThreads);
     EC                  = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE, TnumberE);
     [PC, integralpd]    = meshneighborints_P(P, t, normals, Area, Center, RnumberP, ineighborP);
+    delete(gcp('nocreate'));
     
     %%  Electrode preconditioner M (left). Electrodes may be assigned to different tissues
-    load(filename_electrodes, 'IndicatorElectrodes');
     ElectrodeIndexes = cell(max(IndicatorElectrodes), 1);
     for j = 1:max(IndicatorElectrodes)
         ElectrodeIndexes{j} = find(IndicatorElectrodes==j);
@@ -198,7 +191,6 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
         end
     end
     M = inv(M);                                        %   direct inversion - replace
-    disp([newline 'Preconditioner computed in ' num2str(toc) ' s']);
 
     %%   Redefine array of contrasts for electrodes
     for j = 1:length(ElectrodeIndexes)
@@ -214,12 +206,6 @@ function [P, t, normals, Area, Center, Indicator, tissue, cond, enclosingTissueI
         index       = ElectrodeIndexes{enumber};
         V(index, :) = electrodeVoltages(enumber);
     end
-
-    %%   Save base data
-    save(filename_output, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'ElectrodeIndexes', 'indexe', 'V');
-    
-    %% Save precomputed, more exact neighbor integral correction terms and electrode preconditioner 
-    save(filename_outputP, 'tneighbor', 'EC', 'PC', 'M', 'integralpd', 'ineighborE', 'ineighborP', '-v7.3');
     
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

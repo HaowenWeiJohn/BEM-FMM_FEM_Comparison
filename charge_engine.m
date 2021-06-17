@@ -1,5 +1,5 @@
 function [c, resvec, electrodeCurrents, En, Ptot] = ...
-    charge_engine(filename_model, filename_modelP, filename_output, iter, relres, prec, weight, M, indexe, V)
+    charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes, indexe, V, iter, relres, prec, weight)
 %   Imitates commands executed in "bem2_charge_engine"
 %
 %   "filename_model" is the mesh data saved in "preprocess_model" under the
@@ -49,14 +49,10 @@ function [c, resvec, electrodeCurrents, En, Ptot] = ...
         addpath(strcat(pwd, '/Engine'));
     end
 
-    %% Load model
-    load(filename_model, 'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'cond', 'enclosingTissueIdx', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'ElectrodeIndexes', 'indexe', 'V');
-    load(filename_modelP, 'tneighbor', 'EC', 'PC', 'M', 'integralpd', 'ineighborE', 'ineighborP');
-
     %%  Solution for voltage electrodes
     %  Right-hand side b of the matrix equation Zc = b
     %   Surface charge density is normalized by eps0: real charge density is eps0*c
-    b           = zeros(size(t, 1), 1);           %    Right-hand side of the matrix equation
+    b           = zeros(size(normals, 1), 1);           %    Right-hand side of the matrix equation
     b(indexe)                   = M*V(indexe);    %    Electrodes held at constant voltage
     %  GMRES iterative solution     
     MATVEC                      = @(c) bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);
@@ -70,11 +66,6 @@ function [c, resvec, electrodeCurrents, En, Ptot] = ...
     end
     %   Surface electric potential everywhere
     Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
-
-    %% Save output
-    % This can later be used to compute potentials for arbitrary dipoles
-    % using reciprocity
-    save(filename_output, 'c', 'electrodeCurrents', 'En', 'Ptot');
 
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;
