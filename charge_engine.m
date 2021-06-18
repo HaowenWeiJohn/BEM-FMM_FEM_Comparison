@@ -1,4 +1,4 @@
-function [c, resvec, electrodeCurrents, En, Ptot] = ...
+function [c, resvec, electrodeCurrents, En] = ...
     charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes, indexe, V, iter, relres, prec, weight)
 %   Imitates commands executed in "bem2_charge_engine"
 %
@@ -65,7 +65,7 @@ function [c, resvec, electrodeCurrents, En, Ptot] = ...
         electrodeCurrents(j) = -sum(En(index).*Area(index).*condin(index));
     end
     %   Surface electric potential everywhere
-    Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
+    %Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
 
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

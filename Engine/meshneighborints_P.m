@@ -15,7 +15,7 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
     if gauss == 7;  [coeffS, weightsS, IndexS]  = tri(7, 5);    end;
     if gauss == 13; [coeffS, weightsS, IndexS]  = tri(13, 7);   end;
     if gauss == 25; [coeffS, weightsS, IndexS]  = tri(25, 10);  end;
-    W           = repmat(weightsS', 1, 3);
+    W           = weightsS';
 
     %%   Main loop for analytical double integrals (parallel)
     %   This is the loop over columns of the system matrix
@@ -40,9 +40,9 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
                 ObsPoints(p+(q-1)*IndexS, :)  = coeffS(1, p)*P(t(num, 1), :) +  coeffS(2, p)*P(t(num, 2), :) +  coeffS(3, p)*P(t(num, 3), :);
             end
         end            
-        [JP, ~] = potint(r1, r2, r3, normals(n, :), ObsPoints);     %   JP was calculated without the area Area(n)      
+        [JP, ~] = potint(r1, r2, r3, normals(n, :), ObsPoints);     % This integral is WITH the area: int_{t_n} 1/|r-r_q'| dr     
         for q = 1:RnumberP      
-            IP(q)   = sum(W(:, 1).*JP([1:IndexS]+(q-1)*IndexS), 1);
+            IP(q)   = sum(W.*JP([1:IndexS]+(q-1)*IndexS), 1);
         end
         integralpe(:, n) = +IP;                     %   accurate integrals (here is without the area!)        
         %%   Center-point electric-potential integrals   

@@ -19,10 +19,10 @@ function [P, t, normals, IndicatorElectrodes] = meshimprint(P, t, normals, strge
     %   edges - array of mesh edges
     edges           = meshconnee(t);
     %   avgedgelength - average edge length   
-    temp            = P(edges(:, 1), :) - P(edges(:, 2), :);                              
+    temp            = P(edges(:, 1), :) - P(edges(:, 2), :);
+    avgedgelength   = mean(sqrt(dot(temp, temp, 2)));
     
     %%  Move nodes located close to the boundary exactly to the boundary
-    avgedgelength   = mean(sqrt(dot(temp, temp, 2)));
     %   tol - relative tolerance with regard to edge length
     tol = 0.2;        
     for m = 1:NumberOfElectrodes        
@@ -110,18 +110,18 @@ function [P, t, normals, IndicatorElectrodes] = meshimprint(P, t, normals, strge
     
     %   Remove triangles with coincident points from the mesh (when two nodes are at the boundary)
     A = meshareas(P, t);
-    index = find(A<1e-9);
+    index = find(A/mean(A)<1e-6);
     t(index, :)                 = [];
     normals(index, :)           = []; 
-        
-    %  Remove duplicated nodes from the mesh        
-    [P, t]  = fixmesh(P, t);
     
     %   Remove duplicated triangles with equal centers
     C = meshtricenter(P, t);
     [~, index, ~] = unique(C, 'rows');
     t             = t(index, :);
     normals       = normals(index, :);
+            
+    %  Remove duplicated nodes from the mesh        
+    [P, t]  = fixmesh(P, t);
     
     %   Reorient triangles as required
     t = meshreorient(P, t, normals);
@@ -150,7 +150,7 @@ function [si, vi] = vertices(P, t)
         si{m} = find(temp>0);
         temp  = unique([t(si{m}, 1); t(si{m}, 2); t(si{m}, 3)]);
         temp(temp==m) = [];  
-        vi{m} = temp(temp>0);
+        vi{m} = temp;
     end    
 end
 

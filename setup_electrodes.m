@@ -84,12 +84,6 @@ function [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
     t_outer             = [tt; t_outer(index, :)];
     normals_outer       = [nn; normals_outer(index, :)];
     IndicatorElectrodes = [ie; IndicatorElectrodes(index)];
-
-    index               = IndicatorElectrodes>0;
-    t_outer             = [t_outer(index, :); t_outer(~index, :)];
-    normals_outer       = [normals_outer(index, :); normals_outer(~index, :)];
-    IndicatorElectrodes = IndicatorElectrodes(index);
-    IndicatorElectrodes(end+1:size(t_outer, 1)) = 0;
     
     %% Insert into whole mesh
     P                       = [P_outer; P];   
