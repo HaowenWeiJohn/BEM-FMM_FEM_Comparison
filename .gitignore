@@ -5,3 +5,6 @@ tests.m
 
 # Log files
 fort.13
+
+# MATLAB temporary files
+*.asv
