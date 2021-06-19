@@ -84,7 +84,7 @@ function [name, tissue, cond, enclosingTissueIdx] = tissue_index_read(index_name
     
     %Now: Check that each enclosingTissue is in the list of tissues, and create
     %a direct association between the enclosed tissue and the enclosing tissue
-    enclosingTissueIdx = zeros(length(enclosingTissueName));
+    enclosingTissueIdx = zeros(length(enclosingTissueName), 1);
     for j=1:length(tissue)
         if(strcmp(enclosingTissueName{j}, 'FreeSpace'))
            continue; 

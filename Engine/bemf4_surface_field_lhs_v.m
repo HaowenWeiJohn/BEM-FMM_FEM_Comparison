@@ -17,13 +17,15 @@ function LHS = bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, 
     correctionP  = PC*c;                                                    %   Correction of plain FMM result for potential
     P            = P0 + correctionP;                                        %   Exact results for potential
     LHS(indexe)  = M*P(indexe);                                             %   LHS for potential with preconditioner
+    % M should be (using the full preconditioner) exactly the inverse of the linear operator applied to c(indexe)
+    % So this should be (ignoring precision errors) simply: c(indexe)
     
 %   Normal field just inside
-    En          = -c/2 + correction ...                                         %   This is the dominant (exact) matrix part and the "undo" terms for center-point FMM
-                       + sum(normals.*E0, 2);                                   %   This is the full center-point FMM part      
+    En          = -c(indexe)/2 + correction(indexe) ...                     %   This is the dominant (exact) matrix part and the "undo" terms for center-point FMM
+                       + sum(normals(indexe, :).*E0(indexe, :), 2);         %   This is the full center-point FMM part      
 
 %   Total current (normalized)
-    I = sum(En(indexe).*Area(indexe).*condin(indexe))/sum(Area(indexe).*condin(indexe));    
+    I = sum(En.*Area(indexe).*condin(indexe))/sum(Area(indexe).*condin(indexe));    
     LHS         = LHS + weight*I;                                               %   Adding current conservation law
     
     toc

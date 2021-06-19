@@ -170,7 +170,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
     for j = 1:max(IndicatorElectrodes)
         ElectrodeIndexes{j} = find(IndicatorElectrodes==j);
     end
-    indexe = transpose(vertcat(ElectrodeIndexes{:}));   %   this index is not contiguous
+    indexe = vertcat(ElectrodeIndexes{:});   %   this index is not contiguous
 
     Ne          = length(indexe); 
     tempC       = Center(indexe, :); 
