@@ -14,16 +14,16 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
     %% Prepare constants and container for results
     tic 
     N = size(t, 1);
-    integralpe      = zeros(RnumberP, N);    %   exact potential integrals to be added
-    integralpc      = zeros(RnumberP, N);    %   center-point potential integrals (FMM) to be subtracted
+    integralpe      = zeros(RnumberP, N);    % Exact potential integrals to be added
+    integralpc      = zeros(RnumberP, N);    % Center-point potential integrals (FMM) to be subtracted
 
-    % When computing the contribution \int_{t_n} \frac{1}{4 \pi} \frac{1}{|r-r'|} \, dr'
+    % When computing the contribution \int_{t_n} \frac{1}{|r-r'|} \, dr'
     % to the potential at $r \in t_m$, which point $r$ should we use? We
     % want one constant result for the whole of $t_m$.
     % Thus we use multiple points $r^m_p \in t_m$ and then average the
     % evaluations. For this we use the following coefficients and weights:
-    gauss       = 25;   %   number of evaluation points for averaging
-                        %   Numbers 1, 4, 7, 13, 25 are permitted 
+    gauss       = 25;   % Number of evaluation points for averaging
+                        % Numbers 1, 4, 7, 13, 25 are permitted 
     if gauss == 1;  [coeffS, weightsS, IndexS]  = tri(1, 1);    end
     if gauss == 4;  [coeffS, weightsS, IndexS]  = tri(4, 3);    end
     if gauss == 7;  [coeffS, weightsS, IndexS]  = tri(7, 5);    end
@@ -31,12 +31,13 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
     if gauss == 25; [coeffS, weightsS, IndexS]  = tri(25, 10);  end
     W           = weightsS';
 
-    %%   Main loop for analytical double integrals (parallel)
-    %   This is the loop over columns of the system matrix
+    %% Main loop for analytical double integrals (parallel)
+    % This is the loop over columns of the system matrix
     tic
     if(isempty(gcp('nocreate')))
         error('A parallel pool must be initialized prior to running meshneighborints_P');
     end
+    
     % Loop over $t_n$ and compute contributions to their neighbors $t_m$
     parfor n = 1:N
         %% Setup necessary values for integral over $t_m$
@@ -64,21 +65,20 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
         for q = 1:RnumberP      
             IP(q)   = sum(W.*JP((q-1)*IndexS + [1:IndexS]), 1);
         end
-        integralpe(:, n) = +IP;
+        integralpe(:, n) = IP;
 
-        %% Center-point electric-potential integrals (FMM) to be subtracted
+        %% Center-point electric potential integrals (FMM) to be subtracted
         % Per neighbors $t_m$ that $t_n$ will contribute to, we compute $r_m - r_n$
         % where $r_m, r_n$ are the centers of $t_m, t_n$
         temp    = Center(index, :) - repmat(Center(n, :), RnumberP, 1);
         % $|r_m - r_n|$
         DIST    = sqrt(dot(temp, temp, 2));
-        % $A_m/|r_m - r_n|$
+        % $A_m \frac{1}{|r_m - r_n|}$
         IPC     = Area(n)./DIST;
         % Set self integral to zero (as does FMM)
         IPC(1)  = 0;
         integralpc(:, n) = IPC;
-    end 
-    
+    end    
     disp([newline 'Integral evaluation time = ' num2str(toc) ' s']);
     
     %%  Define useful sparse matrices EC, PC (for GMRES speed up)
@@ -89,7 +89,7 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
     
     ii  = ineighborP;
     jj  = repmat([1:N], RnumberP, 1);
-    PC  = sparse(ii, jj, const*(integralpe - integralpc));     % almost symmetric
+    PC  = sparse(ii, jj, const*(integralpe - integralpc));  % almost symmetric
 
     integralpd = integralpe - integralpc;
     

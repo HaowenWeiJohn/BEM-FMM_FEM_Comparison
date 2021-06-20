@@ -1,15 +1,32 @@
 function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineighborE, TnumberE)
 %   Accurate integration for electric field on neighbor facets using the solid angle approach
 %   Copyright WAW/SNM 2020-2021
+%
+%% Additional documentation by Paul Lunkenheimer
+%
+% "ineighborE" is to be read as a row vector.
+% In row $n$, this vector stores the indices $m$ of all triangles $t_m$ to which $t_n$ will contribute
+% exact integration instead of FMM.
+%
+% "RnumberE" is the number of such neighbors of $t_n$
+%
+    %% Prepare constants and container for results
     N = size(t, 1);
-    integralxc      = zeros(RnumberE, N);    %   center-point Ex integrals for array of neighbor triangles 
-    integralyc      = zeros(RnumberE, N);    %   center-point Ey integrals for array of neighbor triangles 
-    integralzc      = zeros(RnumberE, N);    %   center-point Ez integrals for array of neighbor triangles 
+    % Center-point normal electric field integrals (FMM) to be subtracted
+    integralxc      = zeros(RnumberE, N);   % x-coordinate of E-field
+    integralyc      = zeros(RnumberE, N);   % y-coordinate of E-field
+    integralzc      = zeros(RnumberE, N);   % z-coordinate of E-field
+    % Exact normal electric field to be added
+    integrale = zeros(N, RnumberE);
     
-    gauss       = 25;   %   number of integration points in the Gaussian quadrature  
-                        %   for the outer potential integrals
-                        %   Numbers 1, 4, 7, 13, 25 are permitted 
-    %   Gaussian weights for analytical integration (for the outer integral)
+    % When computing the contribution \int_{t_n} <\eta_m, \int_{t_m} \nabla_r \frac{1}{\abs{r-r'}} \, dr > \, dr'
+    % to the normal electric field, we approximate the outer integral using
+    % a quadrature rule.
+    % Thus we use multiple points $r^n_p \in t_n$ and compute a weighted sum
+    % of these evaluations.
+    % For this we use the following coefficients and weights:
+    gauss       = 25;   % Number of integration points
+                        % Numbers 1, 4, 7, 13, 25 are permitted 
     if gauss == 1;  [coeffS, weightsS, IndexS]  = tri(1, 1); end
     if gauss == 4;  [coeffS, weightsS, IndexS]  = tri(4, 3); end
     if gauss == 7;  [coeffS, weightsS, IndexS]  = tri(7, 5); end
@@ -18,71 +35,81 @@ function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineig
     if gauss == 0;  [coeffS, weightsS, IndexS]  = tri(50);      end
     
 
-    %   Main loop for analytical double integrals (parallel, 24 workers)
-    %   This is the loop over columns of the system matrix
+    %% Main loop for analytical double integrals (parallel)
+    % This is the loop over columns of the system matrix
     tic
     if(isempty(gcp('nocreate')))
         error('A parallel pool must be initialized prior to running meshneighborints_En');
     end
-    integrale = zeros(N, RnumberE);
-    parfor n = 1:N                  %   inner integral; (n =1 - first column of the system matrix, etc.)        
-        % Calculate observation points on this triangle
+    
+    % Loop over $t_n$ and compute contributions to their neighbors $t_m$
+    parfor n = 1:N
+        %% Setup necessary values for double-integral
+        % Evaluation points $r^m_p$ on $t_m$
         ObsPoints = zeros(IndexS, 3);
         for p = 1:IndexS
             ObsPoints(p, :)  = coeffS(1, p)*P(t(n, 1), :) +  coeffS(2, p)*P(t(n, 2), :) +  coeffS(3, p)*P(t(n, 3), :);
         end
-        
-        % Get vertices of neighbor triangles acting on this triangle
+        % Vertices of the neighbors $t_m$ that $t_n$ will contribute to
         index = ineighborE(:,n);
-        r1 = P(t(index, 1), :); %get first vertex of each neighbor triangle
-        r2 = P(t(index, 2), :); %get second vertex of each neighbor triangle
-        r3 = P(t(index, 3), :); %get third vertex of each neighbor triangle
+        r1 = P(t(index, 1), :);
+        r2 = P(t(index, 2), :);
+        r3 = P(t(index, 3), :);
         
-        %Int_temp stores the contribution of each triangle (column) to each observation point (row)
+        %% Exact integration
+        % of <\eta_m, \int_{t_m} \nabla_r \frac{1}{\abs{r-r'^n_p}} \, dr >
         Int_temp = potint4b(r1, r2, r3, ObsPoints);
-        Int_temp(:,1) = 0; %kill self-term
-        
-        %Now weight and sum each column of Int_temp properly to get a single row
-        %weightsS: row vector containing contribution of each observation point to final triangle
-        Int = weightsS*Int_temp;    % Exploiting dimensions of weightsS and Int_temp to ensure proper product occurs
+        Int_temp(:,1) = 0;  % Kill self-term
+        % Now compute weighted sum over all $r^n_p$ on $t_n$
+        % This quadrature rule is still normalized to $1$ and needs to be
+        % multiplied by $A_n$
+        Int = weightsS*Int_temp;
         if TnumberE>0
             Int(1) = mean(Int(2:TnumberE));   % Self integral, SNM, 06/09/21
         end
         integrale(n, :) = Int;       
            
-        %   Center-point electric-field integrals
-        temp    = repmat(Center(n, :), RnumberE, 1) - Center(index, :); %   these are distances to the observation/target triangle
-        DIST    = sqrt(dot(temp, temp, 2));                             %   single column                
-        I       = Area(n)*temp./repmat(DIST.^3, 1, 3);                  %   center-point integral, standard format    
-        I(1, :) = 0;                                                    %   self integrals will give zero
-        integralxc(:, n) = -I(:, 1);    %   center-point integrals, entries of non-zero rows of n-th column
-        integralyc(:, n) = -I(:, 2);    %   center-point integrals, entries of non-zero rows of n-th column
-        integralzc(:, n) = -I(:, 3);    %   center-point integrals, entries of non-zero rows of n-th column        
+        %% Center-point normal electric field integrals (FMM) to be subtracted
+        % Per neighbors $t_m$ that $t_n$ will contribute to, we compute $r_m - r_n$
+        % where $r_m, r_n$ are the centers of $t_m, t_n$
+        temp    =  Center(index, :) - repmat(Center(n, :), RnumberE, 1);
+        % $|r_m - r_n|$
+        DIST    = sqrt(dot(temp, temp, 2));
+        % $A_m \nabla_r \frac{1}{|r_m - r_n|} = A_m \frac{r_m - r_n}{|r_m - r_n|^3}$
+        I       = Area(n)*temp./repmat(DIST.^3, 1, 3);
+        % Set self integral to zero (as does FMM)
+        I(1, :) = 0;
+        integralxc(:, n) = I(:, 1);
+        integralyc(:, n) = I(:, 2);
+        integralzc(:, n) = I(:, 3);
         
     end
-    disp([newline 'Integral evaluation time = ' num2str(toc) ' s']);
+    disp([newline 'Integral evaluation time = ' num2str(toc) ' s']);    
     
-    tic
-    %% Properly weight integrale with the self-triangle area instead of the neighbor-triangle area
+    tic;
+    %% Weight quadrature rule integral with $A_n$ and divide by $A_m$
+    % $\frac{1}{A_m} A_n \sum_p w_p <\eta_m, \int_{t_m} \nabla_r \frac{1}{\abs{r-r'^n_p}} \, dr>$
     area_neighbor = Area(transpose(ineighborE));
     area_self = repmat(Area, 1, RnumberE);
     integrale = integrale .* area_self ./ area_neighbor;
     
-    %%  Define useful sparse matrices EC, PC (for GMRES speed up)    
-    const           = 1/(4*pi);  
-    integralc       = zeros(RnumberE, N);    %   normal integral component for array of neighbor triangles (center point) - to speed up GMRES
-    
-    for n = 1:N                  %   inner integral; (n =1 - first column of the system matrix, etc.)             
-        index = ineighborE(:, n); %   those are non-zero rows of the system matrix for given n 
-                               
+    %% Compute NORMAL electric field from center-point electric field
+    % $<\eta_m, A_m \nabla_r \frac{1}{|r_m - r_n|}>$
+    integralc       = zeros(RnumberE, N);    
+    for n = 1:N            
+        index = ineighborE(:, n);                               
         integralc(:, n)  =       +(integralxc(:, n).*normals(index, 1) + ...
                                    integralyc(:, n).*normals(index, 2) + ...
                                    integralzc(:, n).*normals(index, 3));
-    end 
+    end
+    
+    %% Define useful sparse matrices EC, PC (for GMRES speed up)
+    % Scale by constant $\frac{1}/{4\pi}$
+    const           = 1/(4*pi);
     
     ii  = ineighborE;
     jj  = repmat([1:N], RnumberE, 1);
-    EC  = sparse(ii, jj, const*(-integralc + transpose(integrale)));               %   almost symmetric
+    EC  = sparse(ii, jj, const*(-integralc + transpose(integrale)));    % almost symmetric
     
     disp([newline 'Correction matrix construction time = ' num2str(toc) ' s']);
     
