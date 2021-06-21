@@ -1,5 +1,5 @@
 function [c, resvec, electrodeCurrents, En_loc] = ...
-    charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, indexe, ElectrodeIndexes_local, V, iter, relres, prec, weight)
+    charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, ElectrodeIndexes_local, V, iter, relres, prec, weight)
 %   Imitates commands executed in "bem2_charge_engine"
 %
 %   "filename_model" is the mesh data saved in "preprocess_model" under the
@@ -53,6 +53,7 @@ function [c, resvec, electrodeCurrents, En_loc] = ...
     % Right-hand side b of the matrix equation Zc = b
     % Surface charge density is normalized by eps0: real charge density is eps0*c
     b           = zeros(size(normals, 1), 1);   % Right-hand side of the matrix equation
+    indexe      = vertcat(ElectrodeIndexes_global{:});
     b(indexe)                   = M*V;  % Electrodes held at constant voltage
     %  GMRES iterative solution     
     MATVEC                      = @(c) bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);

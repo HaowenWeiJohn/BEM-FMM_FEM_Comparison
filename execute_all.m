@@ -43,7 +43,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     % electrode regions.
     timer_preprocess_model = tic;
 
-    [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, cond, condin, condout, contrast, eps0, mu0, EC, PC, M_total, integralpd, ineighborE, ineighborP, ElectrodeIndexes_global_total, indexe_total, ElectrodeIndexes_local_total, V_total] = ...
+    [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, cond, condin, condout, contrast, eps0, mu0, EC, PC, M_total, integralpd, ineighborE, ineighborP, ElectrodeIndexes_global_total, ElectrodeIndexes_local_total, V_total] = ...
                 preprocess_model(P, t, normals, Indicator, IndicatorElectrodes, filename_cond, filename_tissue, numThreads, TnumberE, GnumberE, RnumberP);
             
     time_preprocess_model = toc(timer_preprocess_model);
@@ -74,7 +74,6 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
         %% Adjust variables to current electrode pair
         % Indices of triangles belonging to electrode i in whole mesh
         ElectrodeIndexes_global{2} = ElectrodeIndexes_global_total{i};
-        indexe = vertcat(ElectrodeIndexes_global{:});
         % Indices of triangles belonging to electrode i in reduced mesh consisting of only electrode triangles
         ElectrodeIndexes_local{2} = ElectrodeIndexes_local_total{i};
         % Set voltages
@@ -90,7 +89,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
         timer_charge_engine = tic;
 
         [c{i}, resvec{i}, electrodeCurrents{i}, En{i}] = ...
-            charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, indexe, ElectrodeIndexes_local, V, iter, relres, prec_charge, weight);
+            charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, ElectrodeIndexes_local, V, iter, relres, prec_charge, weight);
     
         time_charge_engine{i} = toc(timer_charge_engine);
     
@@ -110,7 +109,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     %% Save results
     save(filename_results, ...
             'IndicatorElectrodes', 'strge', ...
-            'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'enclosingTissueIdx', 'cond', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'EC', 'PC', 'M_total', 'integralpd', 'ineighborE', 'ineighborP', 'ElectrodeIndexes_global', 'indexe_total', 'ElectrodeIndexes_local', 'V_total', ...
+            'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'enclosingTissueIdx', 'cond', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'EC', 'PC', 'M_total', 'integralpd', 'ineighborE', 'ineighborP', 'ElectrodeIndexes_global', 'ElectrodeIndexes_local', 'V_total', ...
             'c', 'resvec', 'electrodeCurrents', 'En', ...
             'dipole_ctr', 'dipole_moment', 'dipole_n', 'VoltageDifference', ...
             'time_setup_electrodes', 'time_preprocess_model', 'time_solve_forward_problem_total', 'time_charge_engine', 'time_compute_dipole_potential', ...
