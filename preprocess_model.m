@@ -167,7 +167,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
     
     %%  Electrode preconditioner M (left). Electrodes may be assigned to different tissues
     ElectrodeIndexes_global = cell(max(IndicatorElectrodes), 1);
-    ElectrodeIndexes_local = cell(size(ElectrodeIndexes_global, 1) + 1, 1);
+    ElectrodeIndexes_local = cell(size(ElectrodeIndexes_global, 1), 1);
     IndicatorElectrodes_local_min = 1;
     for j = 1:max(IndicatorElectrodes)
         ElectrodeIndexes_global{j} = find(IndicatorElectrodes==j);
