@@ -15,9 +15,9 @@ end
 %% Specifiy all parameters and call "execute_all.m"
 
 % Model
-filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
-%filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
-filename_electrodes = "tests" + slash + "electrodes_two.txt";
+%filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
+filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
+filename_electrodes = "tests" + slash + "electrodes_three.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
 filename_cond = "tests" + slash + "fls_conductivities.cond";
 
@@ -36,7 +36,7 @@ prec_charge   = 1e-2;  % Precision for FMM
 weight = 1/2;   % Weight of the charge conservation law to be added
 
 % Specific dipoles and their potential at electrodes
-filename_dipoles = "tests" + slash + "dipoles.txt";
+filename_dipoles = "tests" + slash + "dipoles_ten.txt";
 % Current suggestions
 R    = 0;       % Controls distance in which more exact integration of potential is used
 prec_potential = 1e-2;    % Precision of FMM
@@ -47,15 +47,17 @@ filename_results = "tests\result.mat";
 % Start computation
 execute_all(filename_mesh, filename_electrodes, filename_tissue, filename_cond, numThreads, TnumberE, GnumberE, RnumberP, iter, relres, prec_charge, weight, filename_dipoles, R, prec_potential, filename_results);
 
-load(filename_results, 'cond', 'strge', 'dipole_moment', 'dipole_ctr', 'VoltageDifference', 'time_setup_electrodes', 'time_preprocess_model', 'time_solve_forward_problem_total', 'time_charge_engine', 'time_compute_dipole_potential');
-VoltageDifferenceNum = VoltageDifference{2};
+load(filename_results, 'cond', 'strge', 'dipole_ctr', 'dipole_moment', 'dipole_n', 'VoltageDifference', 'time_setup_electrodes', 'time_preprocess_model', 'time_solve_forward_problem_total', 'time_charge_engine', 'time_compute_dipole_potential');
+VoltageDifferenceNum = horzcat(VoltageDifference{:});
 dipole_ctr = dipole_ctr{2};
 dipole_moment = dipole_moment{2};
 disp(['Setup electrodes time: ' num2str(time_setup_electrodes)]);
 disp(['Preprocess model time: ' num2str(time_preprocess_model)]);
 disp(['Solve forward problem total time: ' num2str(time_solve_forward_problem_total)]);
-disp(['Individual charge engine times: ' num2str(time_charge_engine{2:end})]);
-disp(['Individual compute dipole potential times: ' num2str(time_compute_dipole_potential{2:end})]);
+disp(['Individual charge engine times: ']);
+disp(vertcat(time_charge_engine{2:end}));
+disp(['Individual compute dipole potential times: ']);
+disp(vertcat(time_compute_dipole_potential{2:end}));
 
 %% Compare with analytical solution
 
@@ -69,7 +71,7 @@ I0                 = dipole_magnitude./dipole_length;
 % Radius of the 4 tissue layers relative to a sphere with 100 mm radius
 radfactor          = [0.92 0.86 0.80 0.78];
 
-PotAnl = zeros(size(dipole_ctr, 1), 2);
+PotAnl = zeros(size(dipole_ctr, 1), strge.NumberOfElectrodes);
 
 % Add paths
 if ~isunix
@@ -90,7 +92,12 @@ end
 % Remove added paths
 warning off; rmpath(genpath(pwd)); warning on;
 
-VoltageDifferenceAnl      = PotAnl(:, 1) - PotAnl(:, 2);
-Error2Norm                = norm(VoltageDifferenceAnl - VoltageDifferenceNum)/norm(VoltageDifferenceAnl)
-ErrorRDM                  = 0.5*norm(VoltageDifferenceAnl/norm(VoltageDifferenceAnl) - VoltageDifferenceNum/norm(VoltageDifferenceNum))
+VoltageDifferenceAnl = repmat(PotAnl(:, 1), 1, strge.NumberOfElectrodes) - PotAnl;
+difference           = VoltageDifferenceAnl - VoltageDifferenceNum;
+normalization_factor = sqrt(dot(VoltageDifferenceAnl, VoltageDifferenceAnl, 2));
+Error2Norm           = sqrt(dot(difference, difference, 2))./normalization_factor
+ErrorRDM             = VoltageDifferenceAnl./normalization_factor;
+normalization_factor = sqrt(dot(VoltageDifferenceNum, VoltageDifferenceNum, 2));
+ErrorRDM             = ErrorRDM - VoltageDifferenceNum./normalization_factor;
+ErrorRDM             = 0.5*sqrt(dot(ErrorRDM, ErrorRDM, 2))
         

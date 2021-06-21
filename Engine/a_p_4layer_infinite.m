@@ -65,6 +65,9 @@ function [Pot, series] = a_p_4layer_infinite(No, I0, Pplus, Pminus, radfactor, c
         point     = Points(m, :);  %   Single observation point
         rs        = norm(point);
         COSGAMMA(m)  = dot(dcenter, point)/(rqs*rs);
+        if (COSGAMMA(m) > 1-eps)
+            COSGAMMA(m) = COSGAMMA(m) - eps;
+        end
     end
     for n = 1:N
         Legendre = legendre(n, COSGAMMA);

@@ -61,14 +61,14 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     V1                         = V_total(1:length(ElectrodeIndexes_global{1}), :);
     
     % Containers for output
-    c                 = cell(strge.NumberOfElectrodes, 1);
-    resvec            = cell(strge.NumberOfElectrodes, 1);
-    electrodeCurrents = cell(strge.NumberOfElectrodes, 1);
-    En                = cell(strge.NumberOfElectrodes, 1);
-    dipole_ctr        = cell(strge.NumberOfElectrodes, 1);
-    dipole_moment     = cell(strge.NumberOfElectrodes, 1);
-    dipole_n          = cell(strge.NumberOfElectrodes, 1);
-    VoltageDifference = cell(strge.NumberOfElectrodes, 1);
+    c                    = cell(strge.NumberOfElectrodes, 1);
+    resvec               = cell(strge.NumberOfElectrodes, 1);
+    electrodeCurrents    = cell(strge.NumberOfElectrodes, 1);
+    En                   = cell(strge.NumberOfElectrodes, 1);
+    dipole_ctr           = cell(strge.NumberOfElectrodes, 1);
+    dipole_moment        = cell(strge.NumberOfElectrodes, 1);
+    dipole_n             = cell(strge.NumberOfElectrodes, 1);
+    VoltageDifference    = cell(strge.NumberOfElectrodes, 1);
     
     for i=2:strge.NumberOfElectrodes
         %% Adjust variables to current electrode pair
@@ -103,6 +103,8 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
         time_compute_dipole_potential{i} = toc(timer_compute_dipole_potential);
     end
     
+    VoltageDifference{1} = zeros(dipole_n{2}, 1);
+
     time_solve_forward_problem_total = toc(timer_solve_forward_problem_total);
     
     %% Save results
