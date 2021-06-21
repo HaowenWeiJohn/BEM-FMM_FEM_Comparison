@@ -1,4 +1,4 @@
-function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, cond, condin, condout, contrast, eps0, mu0, EC, PC, M, integralpd, ineighborE, ineighborP, ElectrodeIndexes, indexe, V] = ...
+function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, cond, condin, condout, contrast, eps0, mu0, EC, PC, M, integralpd, ineighborE, ineighborP, ElectrodeIndexes_global, indexe, ElectrodeIndexes_local, V] = ...
              preprocess_model(P, t, normals, Indicator, IndicatorElectrodes, filename_cond, filename_tissue, numThreads, TnumberE, GnumberE, RnumberP)
 %   Imitates commands executed in "Model/model01_main_script.m"
 %   and "bem1_configure_model.m"
@@ -166,11 +166,15 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
     delete(gcp('nocreate'));
     
     %%  Electrode preconditioner M (left). Electrodes may be assigned to different tissues
-    ElectrodeIndexes = cell(max(IndicatorElectrodes), 1);
+    ElectrodeIndexes_global = cell(max(IndicatorElectrodes), 1);
+    ElectrodeIndexes_local = cell(size(ElectrodeIndexes_global, 1) + 1, 1);
+    IndicatorElectrodes_local_min = 1;
     for j = 1:max(IndicatorElectrodes)
-        ElectrodeIndexes{j} = find(IndicatorElectrodes==j);
+        ElectrodeIndexes_global{j} = find(IndicatorElectrodes==j);
+        ElectrodeIndexes_local{j} = IndicatorElectrodes_local_min : IndicatorElectrodes_local_min + length(ElectrodeIndexes_global{j}) - 1;
+        IndicatorElectrodes_local_min = IndicatorElectrodes_local_min + length(ElectrodeIndexes_global{j});
     end
-    indexe = vertcat(ElectrodeIndexes{:});   %   this index is not contiguous
+    indexe = vertcat(ElectrodeIndexes_global{:});   %   this index is not contiguous
 
     Ne          = length(indexe); 
     tempC       = Center(indexe, :); 
@@ -192,20 +196,11 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
     end
     M = inv(M);                                        %   direct inversion - replace
 
-    %%   Redefine array of contrasts for electrodes
-    for j = 1:length(ElectrodeIndexes)
-        contrast(ElectrodeIndexes{j})   = 1;
-    end
-
     %%  Define the voltage excitation vector
-    %   Voltage (V) applied to each electrode
-    electrodeVoltages = [+1, -1];                     %   For electrode configuration 1
-
-    V = zeros(size(t, 1), 1);                           %   Preallocate facet voltage list
-    for enumber = 1:length(ElectrodeIndexes)
-        index       = ElectrodeIndexes{enumber};
-        V(index, :) = electrodeVoltages(enumber);
-    end
+    % Voltage (V) applied to each electrode
+    % 1 at first electrode
+    % -1 at all other electrodes
+    V = [ones(length(ElectrodeIndexes_global{1}), 1); -ones(Ne - length(ElectrodeIndexes_global{1}), 1)];
     
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;
