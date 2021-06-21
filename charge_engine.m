@@ -1,4 +1,4 @@
-function [c, resvec, electrodeCurrents, En] = ...
+function [c, resvec, electrodeCurrents, En_loc] = ...
     charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes, indexe, V, iter, relres, prec, weight)
 %   Imitates commands executed in "bem2_charge_engine"
 %
@@ -49,22 +49,36 @@ function [c, resvec, electrodeCurrents, En] = ...
         addpath(strcat(pwd, '/Engine'));
     end
 
-    %%  Solution for voltage electrodes
-    %  Right-hand side b of the matrix equation Zc = b
-    %   Surface charge density is normalized by eps0: real charge density is eps0*c
-    b           = zeros(size(normals, 1), 1);           %    Right-hand side of the matrix equation
-    b(indexe)                   = M*V(indexe);    %    Electrodes held at constant voltage
+    %% Iterative solution of linear equation
+    % Right-hand side b of the matrix equation Zc = b
+    % Surface charge density is normalized by eps0: real charge density is eps0*c
+    b           = zeros(size(normals, 1), 1);   % Right-hand side of the matrix equation
+    b(indexe)                   = M*V(indexe);  % Electrodes held at constant voltage
     %  GMRES iterative solution     
     MATVEC                      = @(c) bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);
-    [c, flag, rres, its, resvec]= gmres(MATVEC, b, [], relres, iter, [], [], b); 
-    %   Total electrode currents
-    En = bemf4_surface_field_electric_accurate(c, Center, Area, normals, EC, prec);   % normal electric field just inside
-    electrodeCurrents = zeros(length(ElectrodeIndexes), 1);    
+    [c, flag, rres, its, resvec]= gmres(MATVEC, b, [], relres, iter, [], [], b);
+
+    %% Compute total current trough electrodes from charge distribution solution c
+    % Normal electric field just inside
+    % Only computed at triangle centers that belong to electrodes
+    tic;
+    En_loc = bemf4_surface_field_electric_accurate(c, Center, Area, normals, EC, prec, indexe);
+    electrodeCurrents = zeros(length(ElectrodeIndexes), 1);
+    index_min = 1;
     for j = 1:length(ElectrodeIndexes)
-        index = ElectrodeIndexes{j};       
-        electrodeCurrents(j) = -sum(En(index).*Area(index).*condin(index));
+        % Indices of triangles belonging to electrode j in whole mesh
+        index_glob                    = ElectrodeIndexes{j};
+        number_of_electrode_triangles = length(index_glob);
+        % Indices of triangles belonging to electrode j in mesh reduced to electrode triangles
+        index_loc                     = [index_min : (index_min + number_of_electrode_triangles - 1)];
+        % Compute Currents
+        electrodeCurrents(j)          = -sum(En_loc(index_loc).*Area(index_glob).*condin(index_glob));
+        % Adjust minimum index in mesh reduced to electrode triangles for next electrode
+        index_min                     = index_min + number_of_electrode_triangles;
     end
-    %   Surface electric potential everywhere
+    disp(['Changed time: ' num2str(toc)]);
+
+    %% Surface electric potential everywhere
     %Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
 
     %% Remove added paths
