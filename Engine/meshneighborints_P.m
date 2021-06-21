@@ -73,7 +73,7 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
         temp    = Center(index, :) - repmat(Center(n, :), RnumberP, 1);
         % $|r_m - r_n|$
         DIST    = sqrt(dot(temp, temp, 2));
-        % $A_m \frac{1}{|r_m - r_n|}$
+        % $A_n \frac{1}{|r_m - r_n|}$
         IPC     = Area(n)./DIST;
         % Set self integral to zero (as does FMM)
         IPC(1)  = 0;

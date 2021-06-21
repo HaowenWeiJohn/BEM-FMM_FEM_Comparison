@@ -18,11 +18,16 @@ end
 % are marked as belonging to this electrode patch.
 % The mesh is refined in this region around each electrode.
 
-filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
+filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
+%filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
 filename_electrodes = "tests" + slash + "electrodes_two.txt";
 
 [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
     setup_electrodes(filename_mesh, filename_electrodes);
+
+% Scale from mm to m
+strge.PositionOfElectrodes = strge.PositionOfElectrodes*1e-3;
+strge.RadiusOfElectrodes   = strge.RadiusOfElectrodes*1e-3;
 
 %% Preprocess model using "preprocess_model.m"
 % The mesh, tissue names and tissue conductivities are loaded.
@@ -95,7 +100,7 @@ No         = 100;   % Length of computed series expansion of analytical solution
 numThreads = 4;     % Might not be valid on your machine!
 %parpool(numThreads);
 for i = 1:size(dipole_ctr, 1)
-    [PotAnl(i, :), ~] = a_p_4layer_infinite(No, I0(i, :), dipole_plus(i, :), dipole_minus(i, :), radfactor, cond, 1e-3*strge.PositionOfElectrodes);
+    [PotAnl(i, :), ~] = a_p_4layer_infinite(No, I0(i, :), dipole_plus(i, :), dipole_minus(i, :), radfactor, cond, strge.PositionOfElectrodes);
     PotAnl(i, :)      = real(PotAnl(i, :));
 end
 %delete(gcp('nocreate'));

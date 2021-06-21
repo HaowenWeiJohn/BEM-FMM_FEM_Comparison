@@ -14,6 +14,10 @@ function [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
 %   "RadE" is the radius of all electrodes as a scalar value in mm
 %   (suggestion for now: RadE=5)
 %
+%   This function does not change any units. Thus, if electrode position
+%   and radius are given e.g. in mm, they will still be in mm when returned
+%   in "strge"
+%
 %   Modifications by Paul Lunkenheimer
 %
 %%   Original Documentation:

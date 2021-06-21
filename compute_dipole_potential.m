@@ -97,9 +97,9 @@ function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
     dipole_moment                         = dipole_moment*1e-03;    % only if the original data were in Amm!
     
     %%  Compute electric potential for dipoles using reciprocity
-    E = bemf5_volume_field_electric(1e-3*dipole_ctr, c, P, t, Center, Area, normals, R, prec);
+    E = bemf5_volume_field_electric(dipole_ctr, c, P, t, Center, Area, normals, R, prec);
                                            
-    VoltageDifference = - dot(E, 1e-3*dipole_moment, 2)/abs(electrodeCurrents(1));  % Reciprocity
+    VoltageDifference = - dot(E, dipole_moment, 2)/abs(electrodeCurrents(1));  % Reciprocity
 
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

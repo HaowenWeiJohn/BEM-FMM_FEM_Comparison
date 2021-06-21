@@ -75,7 +75,7 @@ function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineig
         temp    =  Center(index, :) - repmat(Center(n, :), RnumberE, 1);
         % $|r_m - r_n|$
         DIST    = sqrt(dot(temp, temp, 2));
-        % $A_m \nabla_r \frac{1}{|r_m - r_n|} = A_m \frac{r_m - r_n}{|r_m - r_n|^3}$
+        % $A_n \nabla_r \frac{1}{|r_m - r_n|} = A_n \frac{r_m - r_n}{|r_m - r_n|^3}$
         I       = Area(n)*temp./repmat(DIST.^3, 1, 3);
         % Set self integral to zero (as does FMM)
         I(1, :) = 0;
