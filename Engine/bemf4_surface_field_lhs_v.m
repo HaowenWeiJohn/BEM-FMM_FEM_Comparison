@@ -5,7 +5,7 @@ function LHS = bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, 
 
 %   LHS is the user-defined function of c equal to c - Z_times_c which is
 %   exactly the left-hand side of the matrix equation Zc = b
-%   tic
+    %timer_bemf4_surface_field_lhs_v = tic;
 
     [P0, E0]    = bemf4_surface_field_electric_plain(c, Center, Area, prec);%   Plain FMM result    
     correction  = contrast.*(EC*c);                                          %   Correction of plain FMM result
@@ -28,5 +28,5 @@ function LHS = bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, 
     I = sum(En.*Area(indexe).*condin(indexe))/sum(Area(indexe).*condin(indexe));    
     LHS         = LHS + weight*I;                                               %   Adding current conservation law
     
-    toc
+    %toc(timer_bemf4_surface_field_lhs_v);
 end
