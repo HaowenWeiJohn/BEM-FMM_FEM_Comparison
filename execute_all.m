@@ -54,11 +54,10 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     timer_solve_forward_problem_total = tic;
     
     % Input
-    ElectrodeIndexes_global    = cell(2, 1);
-    ElectrodeIndexes_global{1} = ElectrodeIndexes_global_total{1};
-    ElectrodeIndexes_local     = cell(2, 1);
-    ElectrodeIndexes_local{1}  = ElectrodeIndexes_local_total{1};
-    V1                         = V_total(1:length(ElectrodeIndexes_global{1}), :);
+    % Extract like this in order to optimize parfor loop
+    ElectrodeIndexes_global_total1 = ElectrodeIndexes_global_total{1};
+    ElectrodeIndexes_local_total1  = ElectrodeIndexes_local_total{1};
+    V1                             = V_total(1:length(ElectrodeIndexes_global_total{1}), :);
     
     % Containers for output
     c                    = cell(strge.NumberOfElectrodes, 1);
@@ -70,8 +69,13 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     dipole_n             = cell(strge.NumberOfElectrodes, 1);
     VoltageDifference    = cell(strge.NumberOfElectrodes, 1);
     
-    for i=2:strge.NumberOfElectrodes
+    parpool(numThreads);
+    parfor i=2:strge.NumberOfElectrodes
         %% Adjust variables to current electrode pair
+        ElectrodeIndexes_global    = cell(2, 1);
+        ElectrodeIndexes_global{1} = ElectrodeIndexes_global_total1;
+        ElectrodeIndexes_local     = cell(2, 1);
+        ElectrodeIndexes_local{1}  = ElectrodeIndexes_local_total1
         % Indices of triangles belonging to electrode i in whole mesh
         ElectrodeIndexes_global{2} = ElectrodeIndexes_global_total{i};
         % Indices of triangles belonging to electrode i in reduced mesh consisting of only electrode triangles
@@ -100,7 +104,9 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
             compute_dipole_potential(filename_dipoles, c{i}, P, t, Center, Area, normals, electrodeCurrents{i}, R, prec_potential);
     
         time_compute_dipole_potential{i} = toc(timer_compute_dipole_potential);
+        disp(['Electrode ' num2str(i) ' computed']);
     end
+    delete(gcp('nocreate'));
     
     VoltageDifference{1} = zeros(dipole_n{2}, 1);
 
@@ -109,7 +115,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     %% Save results
     save(filename_results, ...
             'IndicatorElectrodes', 'strge', ...
-            'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'enclosingTissueIdx', 'cond', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'EC', 'PC', 'M_total', 'integralpd', 'ineighborE', 'ineighborP', 'ElectrodeIndexes_global', 'ElectrodeIndexes_local', 'V_total', ...
+            'P', 't', 'normals', 'Area', 'Center', 'Indicator', 'tissue', 'enclosingTissueIdx', 'cond', 'condin', 'condout', 'contrast', 'eps0', 'mu0', 'EC', 'PC', 'M_total', 'integralpd', 'ineighborE', 'ineighborP', 'ElectrodeIndexes_global_total', 'ElectrodeIndexes_local_total', 'V_total', ...
             'c', 'resvec', 'electrodeCurrents', 'En', ...
             'dipole_ctr', 'dipole_moment', 'dipole_n', 'VoltageDifference', ...
             'time_setup_electrodes', 'time_preprocess_model', 'time_solve_forward_problem_total', 'time_charge_engine', 'time_compute_dipole_potential', ...

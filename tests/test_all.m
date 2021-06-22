@@ -15,9 +15,9 @@ end
 %% Specifiy all parameters and call "execute_all.m"
 
 % Model
-%filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
-filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
-filename_electrodes = "tests" + slash + "electrodes_three.txt";
+filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
+%filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
+filename_electrodes = "tests" + slash + "electrodes.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
 filename_cond = "tests" + slash + "fls_conductivities.cond";
 
@@ -54,9 +54,9 @@ dipole_moment = dipole_moment{2};
 disp(['Setup electrodes time: ' num2str(time_setup_electrodes)]);
 disp(['Preprocess model time: ' num2str(time_preprocess_model)]);
 disp(['Solve forward problem total time: ' num2str(time_solve_forward_problem_total)]);
-disp(['Individual charge engine times: ']);
+disp(['Individual per electrode charge engine times: ']);
 disp(vertcat(time_charge_engine{2:end}));
-disp(['Individual compute dipole potential times: ']);
+disp(['Individual per electrode compute dipole potential times: ']);
 disp(vertcat(time_compute_dipole_potential{2:end}));
 
 %% Compare with analytical solution
