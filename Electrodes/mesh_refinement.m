@@ -14,7 +14,6 @@ function [P, t, normals] = mesh_refinement(P, t, normals, SphereC, SphereR)
 
     t = sort(t, 2);
 
-    tic
     %   Index into edges to be refined
     edges = meshconnee(t);
     center  = 1/2*(P(edges(:, 1), :) + P(edges(:, 2), :));
@@ -112,8 +111,7 @@ function [P, t, normals] = mesh_refinement(P, t, normals, SphereC, SphereR)
     normals(nremove, :)     = [];
     t                       = [t; add];
     normals                 = [normals; nadd];
-    t                       = sort(t, 2);    
-    RefTime = toc
+    t                       = sort(t, 2);
 end
 
 

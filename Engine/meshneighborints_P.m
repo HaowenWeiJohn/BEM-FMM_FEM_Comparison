@@ -12,7 +12,6 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
 %
 
     %% Prepare constants and container for results
-    tic 
     N = size(t, 1);
     integralpe      = zeros(RnumberP, N);    % Exact potential integrals to be added
     integralpc      = zeros(RnumberP, N);    % Center-point potential integrals (FMM) to be subtracted
@@ -33,7 +32,6 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
 
     %% Main loop for analytical double integrals (parallel)
     % This is the loop over columns of the system matrix
-    tic
     if(isempty(gcp('nocreate')))
         error('A parallel pool must be initialized prior to running meshneighborints_P');
     end
@@ -78,8 +76,7 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
         % Set self integral to zero (as does FMM)
         IPC(1)  = 0;
         integralpc(:, n) = IPC;
-    end    
-    disp([newline 'Integral evaluation time = ' num2str(toc) ' s']);
+    end
     
     %%  Define useful sparse matrices EC, PC (for GMRES speed up)
     % Scale by constant $\frac{1}/{4\pi}$
@@ -92,6 +89,5 @@ function [PC, integralpd] = meshneighborints_P(P, t, normals, Area, Center, Rnum
     PC  = sparse(ii, jj, const*(integralpe - integralpc));  % almost symmetric
 
     integralpd = integralpe - integralpc;
-    
-    disp([newline 'Correction matrix construction time = ' num2str(toc) ' s']);
+
 end

@@ -1,4 +1,6 @@
 function execute_all(filename_mesh, filename_electrodes, filename_tissue, filename_cond, numThreads, TnumberE, GnumberE, RnumberP, iter, relres, prec_charge, weight, filename_dipoles, R, prec_potential, filename_results)
+% Enables the user to compute the potential for multiple electrodes and dipoles
+%
 % This function calls all the functions necessary to:
 %   setup the electrodes on the mesh
 %   preprocess the model
@@ -23,6 +25,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     % The mesh is refined in this region around each electrode.
     timer_setup_electrodes = tic;
     
+    disp("Imprint the electrodes on the mesh");
     [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
         setup_electrodes(filename_mesh, filename_electrodes);
 
@@ -43,12 +46,16 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     % electrode regions.
     timer_preprocess_model = tic;
 
+    disp("Process the mesh and model data");
     [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, cond, condin, condout, contrast, eps0, mu0, EC, PC, M_total, integralpd, ineighborE, ineighborP, ElectrodeIndexes_global_total, ElectrodeIndexes_local_total, V_total] = ...
                 preprocess_model(P, t, normals, Indicator, IndicatorElectrodes, filename_cond, filename_tissue, numThreads, TnumberE, GnumberE, RnumberP);
             
     time_preprocess_model = toc(timer_preprocess_model);
     
     %% Iterate over all electrodes to compute potentials evoked by the dipoles
+    disp("Compute iterative solution(s) for charge distribution(s)");
+    disp("Compute potential(s) evoked by given dipoles");
+
     time_charge_engine                = cell(strge.NumberOfElectrodes, 1);
     time_compute_dipole_potential     = cell(strge.NumberOfElectrodes, 1);
     timer_solve_forward_problem_total = tic;
