@@ -54,9 +54,9 @@ dipole_moment = dipole_moment{2};
 disp(['Setup electrodes time: ' num2str(time_setup_electrodes)]);
 disp(['Preprocess model time: ' num2str(time_preprocess_model)]);
 disp(['Solve forward problem total time: ' num2str(time_solve_forward_problem_total)]);
-disp(['Individual charge engine times: ']);
+disp(['Individual per electrode charge engine times: ']);
 disp(vertcat(time_charge_engine{2:end}));
-disp(['Individual compute dipole potential times: ']);
+disp(['Individual per electrode compute dipole potential times: ']);
 disp(vertcat(time_compute_dipole_potential{2:end}));
 
 %% Compare with analytical solution
