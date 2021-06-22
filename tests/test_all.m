@@ -15,7 +15,7 @@ end
 %% Specifiy all parameters and call "execute_all.m"
 
 % Model
-filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
+filename_mesh = "/home/paul/input/meshes/four_layer_surf_from_tets_11.mat";
 %filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
 filename_electrodes = "tests" + slash + "electrodes_five.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
@@ -42,7 +42,7 @@ R    = 0;       % Controls distance in which more exact integration of potential
 prec_potential = 1e-2;    % Precision of FMM
 
 % Results
-filename_results = "tests\result.mat";
+filename_results = "tests" + slash + "result.mat";
 
 % Start computation
 execute_all(filename_mesh, filename_electrodes, filename_tissue, filename_cond, numThreads, TnumberE, GnumberE, RnumberP, iter, relres, prec_charge, weight, filename_dipoles, R, prec_potential, filename_results);
@@ -83,7 +83,7 @@ else
     addpath(strcat(pwd, '/Engine'));
 end
 
-No         = 100;   % Length of computed series expansion of analytical solution
+No         = 1000;   % Length of computed series expansion of analytical solution
 numThreads = 4;     % Might not be valid on your machine!
 %parpool(numThreads);
 for i = 1:size(dipole_ctr, 1)
