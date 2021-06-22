@@ -30,10 +30,10 @@ RnumberP = 4;
 
 % Iterative solver for charge distribution
 % Current suggestions
-iter   = 25;    % Number of iterations for iterative solver
-relres = 1e-12; % Minimum acceptable relative residual for iterative solver
+iter          = 25;    % Number of iterations for iterative solver
+relres        = 1e-12; % Minimum acceptable relative residual for iterative solver
 prec_charge   = 1e-2;  % Precision for FMM
-weight = 1/2;   % Weight of the charge conservation law to be added
+weight        = 1/2;   % Weight of the charge conservation law to be added
 
 % Specific dipoles and their potential at electrodes
 filename_dipoles = "tests" + slash + "dipoles_ten.txt";
