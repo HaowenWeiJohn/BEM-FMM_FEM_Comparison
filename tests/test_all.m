@@ -17,7 +17,7 @@ end
 % Model
 filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
 %filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
-filename_electrodes = "tests" + slash + "electrodes.txt";
+filename_electrodes = "tests" + slash + "electrodes_five.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
 filename_cond = "tests" + slash + "fls_conductivities.cond";
 
@@ -61,6 +61,9 @@ disp(vertcat(time_compute_dipole_potential{2:end}));
 
 %% Compare with analytical solution
 
+disp("Compute analytical solution and compare");
+disp("The errors are computed per dipole over all of the electrodes");
+
 dipole_length      = 0.0001;
 dipole_magnitude   = sqrt(dot(dipole_moment, dipole_moment, 2));
 dipole_orientation = dipole_moment./dipole_magnitude;
@@ -100,4 +103,7 @@ ErrorRDM             = VoltageDifferenceAnl./normalization_factor;
 normalization_factor = sqrt(dot(VoltageDifferenceNum, VoltageDifferenceNum, 2));
 ErrorRDM             = ErrorRDM - VoltageDifferenceNum./normalization_factor;
 ErrorRDM             = 0.5*sqrt(dot(ErrorRDM, ErrorRDM, 2))
+
+%% Change back to tests
+cd tests
         

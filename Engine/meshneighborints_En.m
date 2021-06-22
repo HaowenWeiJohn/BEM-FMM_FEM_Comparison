@@ -37,7 +37,6 @@ function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineig
 
     %% Main loop for analytical double integrals (parallel)
     % This is the loop over columns of the system matrix
-    tic
     if(isempty(gcp('nocreate')))
         error('A parallel pool must be initialized prior to running meshneighborints_En');
     end
@@ -84,9 +83,7 @@ function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineig
         integralzc(:, n) = I(:, 3);
         
     end
-    disp([newline 'Integral evaluation time = ' num2str(toc) ' s']);    
     
-    tic;
     %% Weight quadrature rule integral with $A_n$ and divide by $A_m$
     % $\frac{1}{A_m} A_n \sum_p w_p <\eta_m, \int_{t_m} \nabla_r \frac{1}{\abs{r-r'^n_p}} \, dr>$
     area_neighbor = Area(transpose(ineighborE));
@@ -110,8 +107,6 @@ function [EC] = meshneighborints_En(P, t, normals, Area, Center, RnumberE, ineig
     ii  = ineighborE;
     jj  = repmat([1:N], RnumberE, 1);
     EC  = sparse(ii, jj, const*(-integralc + transpose(integrale)));    % almost symmetric
-    
-    disp([newline 'Correction matrix construction time = ' num2str(toc) ' s']);
     
     %Uncomment the following line to save debugging information
     %save('integrals_test_TES', 'integrale', 'integralc', 'EC');

@@ -6,7 +6,6 @@ function [P, t, normals, centroids, areas, Indicator, condin, condout, contrast]
 %   Copyright WAW/SNM 2019-2020
 
     %---Find nearest neighbors for every facet---
-    disp('  Evaluating nearest neighbors ...');
     [index, DIST] = knnsearch(centroids, centroids, 'k', 2);
     %Now find entries where DIST is zero
     index_trimmed = index(DIST(:,2) < eps,:);
@@ -20,7 +19,6 @@ function [P, t, normals, centroids, areas, Indicator, condin, condout, contrast]
     facetList2 = t(index_trimmed(:,2), :);
 
     %---Check that coincident facets have identical vertices---
-    disp('  Evaluating coincident facets ...');
     coincidentFacetsCounter = 0;
     coincidentCentroidsCounter = 0;
     coincidentFacets = zeros(size(facetList1,1), 2);
@@ -50,7 +48,6 @@ function [P, t, normals, centroids, areas, Indicator, condin, condout, contrast]
     coincidentFacets(coincidentFacets == 0) = [];
     coincidentCentroids(coincidentCentroids == 0) = [];
 
-    disp(['  Found ' num2str(coincidentFacetsCounter) ' duplicate facets']);
     if(coincidentCentroidsCounter ~= 0)
         %This is an error because the odds of encountering this case are
         %vanishingly small.  One way to handle it gracefully would be to pull the
@@ -61,7 +58,6 @@ function [P, t, normals, centroids, areas, Indicator, condin, condout, contrast]
     end
 
     %---Update conductivity information for duplicated facets---
-    disp('  Resolving duplicate facets ...');
     if(~isempty(coincidentFacets))
         keepFacet = coincidentFacets(:,1);
         deleteFacet = coincidentFacets(:,2);
