@@ -100,6 +100,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
             compute_dipole_potential(filename_dipoles, c{i}, P, t, Center, Area, normals, electrodeCurrents{i}, R, prec_potential);
     
         time_compute_dipole_potential{i} = toc(timer_compute_dipole_potential);
+        disp(['Electrode ' num2str(i) ' computed']);
     end
     
     VoltageDifference{1} = zeros(dipole_n{2}, 1);
