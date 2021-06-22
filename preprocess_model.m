@@ -76,7 +76,7 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
     else
         addpath(strcat(pwd, '/Engine'));
         addpath(strcat(pwd, '/io'));
-        addpath(strcat(pwd, '\Electrodes'));
+        addpath(strcat(pwd, '/Electrodes'));
     end
     
     %%  Define EM constants
