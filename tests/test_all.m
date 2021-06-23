@@ -15,9 +15,9 @@ end
 %% Specifiy all parameters and call "execute_all.m"
 
 % Model
-filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
-%filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
-filename_electrodes = "tests" + slash + "electrodes_five.txt";
+%filename_mesh = "/home/paul/input/meshes/four_layer_surf_from_tets_11.mat";
+filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
+filename_electrodes = "tests" + slash + "electrodes_two.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
 filename_cond = "tests" + slash + "fls_conductivities.cond";
 
@@ -30,10 +30,10 @@ RnumberP = 4;
 
 % Iterative solver for charge distribution
 % Current suggestions
-iter   = 25;    % Number of iterations for iterative solver
-relres = 1e-12; % Minimum acceptable relative residual for iterative solver
+iter          = 25;    % Number of iterations for iterative solver
+relres        = 1e-12; % Minimum acceptable relative residual for iterative solver
 prec_charge   = 1e-2;  % Precision for FMM
-weight = 1/2;   % Weight of the charge conservation law to be added
+weight        = 1/2;   % Weight of the charge conservation law to be added
 
 % Specific dipoles and their potential at electrodes
 filename_dipoles = "tests" + slash + "dipoles_ten.txt";
@@ -42,7 +42,7 @@ R    = 0;       % Controls distance in which more exact integration of potential
 prec_potential = 1e-2;    % Precision of FMM
 
 % Results
-filename_results = "tests\result.mat";
+filename_results = "tests" + slash + "result.mat";
 
 % Start computation
 execute_all(filename_mesh, filename_electrodes, filename_tissue, filename_cond, numThreads, TnumberE, GnumberE, RnumberP, iter, relres, prec_charge, weight, filename_dipoles, R, prec_potential, filename_results);

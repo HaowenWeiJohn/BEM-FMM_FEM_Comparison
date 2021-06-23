@@ -25,7 +25,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
     % The mesh is refined in this region around each electrode.
     timer_setup_electrodes = tic;
     
-    disp("Imprint the electrodes on the mesh");
+    disp("Imprint electrodes on the mesh");
     [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
         setup_electrodes(filename_mesh, filename_electrodes);
 
