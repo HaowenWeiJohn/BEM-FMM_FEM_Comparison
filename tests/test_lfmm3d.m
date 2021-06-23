@@ -25,7 +25,7 @@ srcinfo.charges = srcinfo.sources(1, :);    % charges
 prec            = 1e-2;                     % FMM precision
 U               = lfmm3d(prec, srcinfo, pg);% FMM
 
-filename_output = "tests" + slash + "results_lfmm3d.mat";
+filename_output = "tests" + slash + "result_lfmm3d.mat";
 save(filename_output, 'pg', 'srcinfo', 'prec', 'U');
 
 %% Remove added paths

@@ -15,9 +15,9 @@ end
 %% Specifiy all parameters and call "execute_all.m"
 
 % Model
-filename_mesh = "/home/paul/input/meshes/four_layer_surf_from_tets_11.mat";
-%filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
-filename_electrodes = "tests" + slash + "electrodes_five.txt";
+%filename_mesh = "/home/paul/input/meshes/four_layer_surf_from_tets_11.mat";
+filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
+filename_electrodes = "tests" + slash + "electrodes_two.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
 filename_cond = "tests" + slash + "fls_conductivities.cond";
 
@@ -83,7 +83,7 @@ else
     addpath(strcat(pwd, '/Engine'));
 end
 
-No         = 1000;   % Length of computed series expansion of analytical solution
+No         = 100;   % Length of computed series expansion of analytical solution
 numThreads = 4;     % Might not be valid on your machine!
 %parpool(numThreads);
 for i = 1:size(dipole_ctr, 1)
