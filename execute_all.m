@@ -6,6 +6,7 @@ function execute_all(filename_mesh, filename_electrodes, filename_tissue, filena
 % and iterates over remaining electrodes
 % Per iteration, data for 2 electrodes is extracted, passed to functions
 % and results are integrated in cell
+% Iteration is parallelized
 %
 % This function calls all the functions necessary to:
 %   setup the electrodes on the mesh
