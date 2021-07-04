@@ -1,6 +1,8 @@
 %% This script tests all functions
-% The function calls are executed in the necessary order and results
-% compared against precomputed, saved results
+% The function "execute_all.m" is used instead of calling the basic
+% functions themselves.
+% The result is compared against the analytical solution as well as a
+% precomputed numerical solution.
 
 %% Change to parent folder
 cd ..
@@ -17,7 +19,7 @@ end
 % Model
 %filename_mesh = "/home/paul/input/meshes/four_layer_surf_from_tets_11.mat";
 filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
-filename_electrodes = "tests" + slash + "electrodes_two.txt";
+filename_electrodes = "tests" + slash + "electrodes_five.txt";
 filename_tissue = "tests" + slash + "fls_tissue.tiss";
 filename_cond = "tests" + slash + "fls_conductivities.cond";
 
@@ -106,4 +108,11 @@ ErrorRDM             = 0.5*sqrt(dot(ErrorRDM, ErrorRDM, 2))
 
 %% Change back to tests
 cd tests
-        
+
+%% Compare with precomputed results
+
+disp("Compare with precomputed results. Compute Differences:");
+precomputed = load("result_test_all.mat", 'VoltageDifferenceNum', 'Error2Norm', 'ErrorRDM');
+disp("Potential: " + num2str(norm(precomputed.VoltageDifferenceNum - VoltageDifferenceNum)));
+disp("Error 2-norm: " + num2str(norm(precomputed.Error2Norm - Error2Norm)));
+disp("Error RDM: " + num2str(norm(precomputed.ErrorRDM - ErrorRDM)));
