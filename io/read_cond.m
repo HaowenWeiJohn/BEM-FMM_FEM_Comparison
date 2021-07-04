@@ -1,6 +1,6 @@
 function cond = read_cond(filename)
-%   Reads file containing conductivites of different tissues in mesh of
-%   head
+%   Reads ascii file containing conductivites of different tissues
+%   in mesh of head
 %
 %   Conductivities must be seperated only by single line breaks
 %   and must be ordered according to the indices of the

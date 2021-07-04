@@ -11,8 +11,16 @@ function [P, t, normals, Indicator, IndicatorElectrodes, strge] = ...
 %   s.t. tissue i encloses tissue i+1
 %   Mesh must be in mm!
 %
-%   "RadE" is the radius of all electrodes as a scalar value in mm
-%   (suggestion for now: RadE=5)
+%   Electrodes must be given as ascii file.
+%   Each electrode is seperated only by single line breaks
+%   Each line contains 3 entries seperated by single spaces
+%   Entries are x, y and z coordinate of electrode location
+%
+%   "IndicatorElectrodes" is Nx1 vector containing per triangle
+%   the electrode number it belongs to or zero
+%
+%   Struct "strge" contains positions of electrodes read from ascii file,
+%   the number of electrodes and their radius
 %
 %   This function does not change any units. Thus, if electrode position
 %   and radius are given e.g. in mm, they will still be in mm when returned

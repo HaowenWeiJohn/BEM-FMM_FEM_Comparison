@@ -1,6 +1,7 @@
 %% This script tests all functions
-% The function calls are executed in the necessary order and results
-% compared against precomputed, saved results
+% The function calls are executed in the necessary order and the result is
+% compared against the analytical solution as well as a precomputed
+% numerical solution.
 
 %% Change to parent folder
 cd ..
@@ -13,10 +14,10 @@ else
 end
 
 %% Set up electrodes and refine mesh using "setup_electrodes.m"
-% Takes mesh and electrode positions.
+% Loads mesh and electrode positions.
 % In a radius of 1.5*AverageEdgeLength all triangles around an electrode
-% are marked as belonging to this electrode patch.
-% The mesh is refined in this region around each electrode.
+% position are marked as belonging to this electrode patch.
+% The mesh is refined in this region.
 
 %filename_mesh = "C:\Users\Paul\Documents\WWU\Masterarbeit\Meshing\multilayer_sphere_model\4_Layer_Sphere_Meshes\Surface_Meshes\Surface_meshes_coupled_with_volume_meshes\MAT\four_layer_surf_from_tets_7.mat";
 filename_mesh = "tests" + slash + "four_layer_surf_from_tets_3.mat";
@@ -120,4 +121,13 @@ Error2Norm                = norm(VoltageDifferenceAnl - VoltageDifferenceNum)/no
 ErrorRDM                  = 0.5*norm(VoltageDifferenceAnl/norm(VoltageDifferenceAnl) - VoltageDifferenceNum/norm(VoltageDifferenceNum))
 
 %% Change back to tests
+
 cd tests
+
+%% Compare with precomputed results
+
+disp("Compare with precomputed results. Compute Differences:");
+precomputed = load("result_test_all_individually.mat", 'VoltageDifferenceNum', 'Error2Norm', 'ErrorRDM');
+disp("Potential: " + num2str(norm(precomputed.VoltageDifferenceNum - VoltageDifferenceNum)));
+disp("Error 2-norm: " + num2str(precomputed.Error2Norm - Error2Norm));
+disp("Error RDM: " + num2str(precomputed.ErrorRDM - ErrorRDM));
