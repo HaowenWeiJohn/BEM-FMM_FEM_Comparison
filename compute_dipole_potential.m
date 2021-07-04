@@ -6,13 +6,12 @@ function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
 %   "bem6_comparison_analytical_all_dipoles_ver.m" and
 %   "bem6_comparison_analytical_single_dipole.m"
 %
-%   Unifies first 3 scripts into one function and reads dipoles from file
-%   Dipole locations must be in mm and moments in Amm!
-%   Only sets up location and moment of dipoles
-%   All other data (like I, dipolePlus, ...) is simply not needed
+%   Attention: Current implementation only works for exactly 2 electrodes!
 %
-%   Unifies second 3 scripts into one function that computes the solution
-%   potential for all given dipoles
+%   Unifies above scripts into one function and reads dipoles from ascii file
+%   Dipole locations must be in mm and moments in Amm!
+%   See "read_dipoles.m" for specifics
+%
 %   Does not compare with analytical solution!
 %
 %   "c" is solution charge distribution computed in "charge_engine.m"
@@ -25,6 +24,12 @@ function [dipole_ctr, dipole_moment, dipole_n, VoltageDifference] = ...
 %   used instead of FMM (suggestion for now: R=0)
 %
 %   "prec" is precision of FMM (suggestion for now: prec=1e-2)
+%
+%   "dipole_ctr", "dipole_moment", "dipole_n" are dipole data that has been
+%   read from file
+%
+%   "VoltageDifference" is the voltage difference between the second and
+%   the first electrode that were passed
 %
 %   Modifications by Paul Lunkenheimer
 %

@@ -1,11 +1,27 @@
 function execute_all(filename_mesh, filename_electrodes, filename_tissue, filename_cond, numThreads, TnumberE, GnumberE, RnumberP, iter, relres, prec_charge, weight, filename_dipoles, R, prec_potential, filename_results)
 % Enables the user to compute the potential for multiple electrodes and dipoles
 %
+% Attention: As BEM-FMM with reciprocity is only implemented for exactly 2
+% electrodes at the moment, this function uses first electrode as reference
+% and iterates over remaining electrodes
+% Per iteration, data for 2 electrodes is extracted, passed to functions
+% and results are integrated in cell
+%
 % This function calls all the functions necessary to:
 %   setup the electrodes on the mesh
 %   preprocess the model
 %   solve the linear equation for the charge distribution
 %   compute the potentials at the electrodes resulting from given dipoles
+%
+% Please see "setup_electrodes.m", "preprocess_model.m", "charge_engine.m",
+% "compute_dipole_potential.m" for details on the arguments that need to be
+% passed
+%
+% Results are saved in "filename_results"
+% See functions mentioned above for details on results
+%
+% Also times execution times and saves times as variables with prefix
+% "time_"
 %
 % As we assume that multiple electrodes are loaded, the first one is chosen
 % as reference electrode and we iterate over all the others to compute the

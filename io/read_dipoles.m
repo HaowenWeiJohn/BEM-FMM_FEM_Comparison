@@ -1,5 +1,5 @@
 function [P, M, n_of_dip] = read_dipoles(filename)
-%   Reads file containing dipoles
+%   Reads ascii file containing dipoles
 %
 %   Dipoles must be seperated only by single line breaks
 %   Each line contains 6 entries seperated by single tabs

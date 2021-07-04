@@ -2,11 +2,11 @@ function [c, resvec, electrodeCurrents, En_loc] = ...
     charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, ElectrodeIndexes_local, V, iter, relres, prec, weight)
 %   Imitates commands executed in "bem2_charge_engine"
 %
-%   "filename_model" is the mesh data saved in "preprocess_model" under the
-%   filename "filename_output" (not under "filename_outputP"!)
+%   Attention: Current implementation only works for exactly 2 electrodes!
 %
-%   "filename_modelP" is the mesh data saved in "preprocess_model" under the
-%   filename "filename_outputP"
+%   "normals", "Area", "Center", "condin", "contrast", "EC", "PC", "M",
+%   "ElectrodeIndexes_global", "ElectrodeIndexes_local", "V" are output of
+%   "preprocess_model.m"
 %
 %   "iter" is maximum possible number of iterations in the solution
 %   (is 25 in original script)
@@ -14,15 +14,24 @@ function [c, resvec, electrodeCurrents, En_loc] = ...
 %   "relres" is minimum acceptable relative residual
 %   (is 1e-12 in original script)
 %
-%   precis is the precision for the FMM computations
+%   "prec" is the precision for the FMM computations
 %   (is 1e-2 in original script)
 %
 %   "weight" is weight of the charge conservation law
 %   to be added (empirically found)
 %   (is 1/2 in original script)
 %
-%   Variables "strdipolePplus", "strdipolePminus", "strdipolesig",
-%   "strdipoleCurrent", "Ctr" come from function "setup_dipoles.m"
+%   "c" is the computed solution for the resulting charge distribution
+%
+%   "resvec" are the residual errors per iteration
+%
+%   "electrodeCurrents" are the electric currents per electrode ordered by
+%   the electrode indices
+%
+%   "En_loc" is the resulting normal electric field per triangle in
+%   a mesh reduced to only triangles belonging to an electrode at all
+%
+%   Modifications by Paul Lunkenheimer
 %
 %%   Original Documentation:
 %

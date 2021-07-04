@@ -1,5 +1,5 @@
 function [P] = read_electrodes(filename)
-%   Reads file containing electrodes
+%   Reads ascii file containing electrodes
 %
 %   Electrodes must be seperated only by single line breaks
 %   Each line contains 3 entries seperated by single spaces

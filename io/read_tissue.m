@@ -1,5 +1,5 @@
 function tissue = read_tissue(filename)
-%   Reads file containing names of different tissues in headmodel
+%   Reads ascii file containing names of different tissues in headmodel
 %
 %   Names must be seperated only by single line breaks
 %   and must be ordered according to the indices of the

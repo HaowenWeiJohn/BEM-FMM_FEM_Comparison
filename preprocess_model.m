@@ -3,28 +3,14 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
 %   Imitates commands executed in "Model/model01_main_script.m"
 %   and "bem1_configure_model.m"
 %
-%   First run "setup_electrodes.m" as mesh must be refined around electrodes!
+%   First run "setup_electrodes.m" as mesh must be refined
+%   around electrodes and additional data is needed.
+%   "P", "t", "normals", "Indicator", "IndicatorElectrodes" are output
+%   of "setup_electrodes.m
 %
 %   Please see "read_cond" and "read_tissue" for specifications of ".cond"
-%   and ".tiss" files
+%   and ".tiss" files passed via "filename_cond" and "filename_tissue"
 %   Conductivity must be in S/mm!
-%
-%   Triangular mesh must be given as ".mat" file containing:
-%       P - Mx3 matrix of mesh vertices in 3D (in mm!)
-%       t - Nx3 matrix. Each row: 3 row-indices of P determining a triangle
-%       normals - Nx3 matrix of unit outer normals of triangles in t
-%       Indicator - Nx1 matrix of tissue indicators per triangle
-%   The Indicators must be integers 0, 1, ..., N
-%   s.t. tissue i encloses tissue i+1
-%   Mesh must be in mm!
-%   First run "setup_electrodes.m" as mesh must be refined around electrodes!
-%   Then pass this refined mesh as arguments "P", "t", "normals" and
-%   "Indicator"
-%
-%   "IndicatorElectrodes" and "strge" is the output of "setup_electrodes.m"
-%
-%   The output filenames must be ".mat" files
-%   One is the combined mesh, the other additional precomputed results
 %
 %   "numThreads" is the number of cores to be used for MATLAB Parallel
 %   Pools
@@ -37,6 +23,37 @@ function [P, t, normals, Area, Center, Indicator, tissue, enclosingTissueIdx, co
 %
 %   "RnumberP" is number of neighbor triangles for analytical integration
 %   of electric potential (suggestion for now: RnumberP=4)
+%
+%   "P", "t", "normals", "Area", "Center", "Indicator" are mesh data
+%
+%   "tissue" are the names of the tissues ordered by the index they will be
+%   referred by
+%   "enclosingTissueIdx" is per tissue index the index of the enclosing
+%   tissue
+%   "cond" is their conductivity
+%
+%   "condin", "condout" are per triangle the inner/outer conductivites
+%   "contrast" is per triangle the conductivity contrast (BEM-FMM specific)
+%
+%   "eps0", "mu0" are dielectric permittivity/magnetic permeability
+%   of vacuum(~air)
+%
+%   "EC", "PC" are correction matrices for more exact integration of
+%   electric field/potential for near neighbors
+%   "ineighborE", "ineighborP" are the number of near neighbors that are
+%   considered
+%   "integralpd" is correction matrices for potential in local
+%   representation (not as sparse matrix, dimension ineighborPxN)
+%
+%   "M" is a preconditioner matrix used in iterative linear solver
+%
+%   "ElectrodeIndexes_global" is per electrode index all triangle indices
+%   belonging to this electrode
+%   "ElectrodeIndexes_local" is per electrode index all triangle indices in
+%   a mesh reduced to only triangles belonging to an electrode at all
+%
+%   "V" is the voltage per triangle in a mesh reduced to only triangles
+%   belonging to an electrode at all
 %
 %   Modifications by Paul Lunkenheimer
 %
