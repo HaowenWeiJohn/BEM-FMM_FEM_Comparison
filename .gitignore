@@ -2,6 +2,7 @@
 tests.m
 
 # Output
+find_Sky_error_*
 
 # Log files
 fort.13
