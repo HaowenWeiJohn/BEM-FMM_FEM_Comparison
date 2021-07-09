@@ -1,5 +1,5 @@
 function [c, resvec, electrodeCurrents, En_loc] = ...
-    charge_engine(normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, ElectrodeIndexes_local, V, iter, relres, prec, weight)
+    charge_engine(machine, slash, normals, Area, Center, condin, contrast, EC, PC, M, ElectrodeIndexes_global, ElectrodeIndexes_local, V, iter, relres, prec, weight)
 %   Imitates commands executed in "bem2_charge_engine"
 %
 %   Attention: Current implementation only works for exactly 2 electrodes!
@@ -65,7 +65,8 @@ function [c, resvec, electrodeCurrents, En_loc] = ...
     indexe      = vertcat(ElectrodeIndexes_global{:});
     b(indexe)                   = M*V;  % Electrodes held at constant voltage
     %  GMRES iterative solution     
-    MATVEC                      = @(c) bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);
+    MATVEC                      = @(c) bemf4_surface_field_lhs_v(machine, slash, c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);
+    save("saves" + slash + "find_Sky_error_save3.1" + machine + ".mat", 'b', 'indexe', '-v7.3');
     [c, flag, rres, its, resvec]= gmres(MATVEC, b, [], relres, iter, [], [], b);
 
     %% Compute total current trough electrodes from charge distribution solution c
@@ -84,6 +85,8 @@ function [c, resvec, electrodeCurrents, En_loc] = ...
 
     %% Surface electric potential everywhere
     %Ptot = bemf4_surface_field_potential_accurate(c, Center, Area, PC);
+    
+    save("saves" + slash + "find_Sky_error_save3.end" + machine + ".mat", 'b', 'indexe', 'c', 'flag', 'rres', 'its', 'resvec', 'En_loc', 'electrodeCurrents', 'index_glob', 'index_loc', '-v7.3');
 
     %% Remove added paths
     warning off; rmpath(genpath(pwd)); warning on;

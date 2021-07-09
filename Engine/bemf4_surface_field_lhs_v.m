@@ -1,4 +1,4 @@
-function LHS = bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec)   
+function LHS = bemf4_surface_field_lhs_v(machine, slash, c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec)   
 %   Computes the left hand side of the charge equation for surface charges
 %
 %   Copyright SNM 2017-2020
@@ -30,4 +30,10 @@ function LHS = bemf4_surface_field_lhs_v(c, Center, Area, contrast, normals, M, 
     LHS         = LHS + weight*I;                                               %   Adding current conservation law
     
     %toc(timer_bemf4_surface_field_lhs_v);
+    persistent count
+    if isempty(count)
+        count = 1;
+    end
+    count = count+1;
+    save("saves" + slash + "find_Sky_error_save3." + num2str(count) + machine + ".mat", 'P0', 'E0', 'correction', 'LHS', 'correctionP', 'P', 'En', 'I', '-v7.3');
 end
