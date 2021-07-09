@@ -66,7 +66,8 @@ function [c, resvec, electrodeCurrents, En_loc] = ...
     b(indexe)                   = M*V;  % Electrodes held at constant voltage
     %  GMRES iterative solution     
     MATVEC                      = @(c) bemf4_surface_field_lhs_v(machine, slash, c, Center, Area, contrast, normals, M, EC, PC, indexe, weight, condin, prec);
-    save("saves" + slash + "find_Sky_error_save3.1" + machine + ".mat", 'b', 'indexe', '-v7.3');
+    temp_Sergey = MATVEC(b);
+    save("saves" + slash + "find_Sky_error_save3.1" + machine + ".mat", 'temp_Sergey', 'b', 'indexe', '-v7.3');
     [c, flag, rres, its, resvec]= gmres(MATVEC, b, [], relres, iter, [], [], b);
 
     %% Compute total current trough electrodes from charge distribution solution c

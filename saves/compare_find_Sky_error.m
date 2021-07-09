@@ -1,6 +1,6 @@
 
-file_laptop = "find_Sky_error_save3.1laptop.mat";
-file_Sky = "find_Sky_error_save3.1Sky.mat";
+file_laptop = "find_Sky_error_save3laptop.mat";
+file_Sky = "find_Sky_error_save3Sky.mat";
 
 l = load(file_laptop);
 s = load(file_Sky);
